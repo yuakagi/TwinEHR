@@ -1,0 +1,63 @@
+<!--
+  Logout Page Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% extends "components/bases/landing_base.html" %}
+{% load static %}
+
+
+<!-- Custom styles for this page only -->
+{% block style %}
+<style>
+  .logout-card {
+    max-width: 380px;
+    width: 100%;
+    padding: 2rem;
+  }
+</style>
+{% endblock %}
+
+<!-- Main content -->
+{% block content %}
+<main class="d-flex justify-content-center align-items-center vh-100">
+  <!-- begin:: Card -->
+  <div class="card shadow-lg text-center logout-card">
+    <div class="card-body">
+      <!-- begin:: Logo & Heading -->
+      <img class="mb-3" alt="Logo" src="{% static 'assets/dist/media/logo_default.png' %}" height="57"/>
+      <h1 class="h4 mb-3 fw-bold">Sign Out</h1>
+      <p class="text-muted">Are you sure you want to log out?</p>
+      <!-- end:: Logo & Heading -->
+
+      <!-- begin:: Logout form -->
+      <form method="POST" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'account_login' %}">
+        
+        <!-- begin:: Buttons -->
+        <button class="btn btn-danger w-100 py-2 mb-2" type="submit">Logout</button>
+        <a href="{% url 'account_user_home_redirect' %}" class="btn btn-secondary w-100 py-2">Cancel</a>
+        <!-- end:: Buttons -->
+      </form>
+      <!-- end:: Logout form -->
+    </div>
+
+    <!-- begin:: Card footer -->
+    <div class="card-footer text-center text-muted">
+      <p class="mb-0">&copy; 2025</p>
+    </div>
+    <!-- end:: Card footer -->
+  </div>
+  <!-- end:: Card -->
+</main>
+{% endblock %}
+
+
+

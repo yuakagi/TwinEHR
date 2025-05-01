@@ -1,0 +1,41 @@
+<!--
+  404 Error Page
+  Author: Yu Akagi
+  Last Updated: 2025/4/5
+
+  Attribution:
+    Modified from Bootstrap 5 examples.
+-->
+{% extends "components/bases/landing_base.html" %}
+{% load static %}
+
+<!-- Main content -->
+{% block content %}
+<main class="px-3">
+  <h1 class="display-4 fw-bold">404 - Page Not Found</h1>
+  <p class="lead">Sorry, the page you were looking for doesn't exist.</p>
+  <p class="lead">
+    <a href="#" onclick="handleBack()" class="btn btn-lg btn-light fw-bold border-white bg-white">
+      Go Back
+    </a>
+  </p>
+</main>
+
+<!-- Optional: Fireworks effect -->
+<div id="fireworks-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+{% endblock %}
+
+<!-- Scripts -->
+{% block script %}
+<script>
+// Back navigation
+function handleBack() {
+  if (document.referrer && document.referrer !== window.location.href) {
+    history.back();
+  } else {
+    // Try user home redirect, or fallback to landing
+    window.location.href = "{% url 'account_user_home_redirect' %}" || "{% url 'landing' %}";
+  }
+}
+</script>
+{% endblock %}

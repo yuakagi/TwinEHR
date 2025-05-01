@@ -1,0 +1,82 @@
+<!--
+  Sign up html template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% extends "components/bases/landing_base.html" %}
+{% load static %}
+
+
+  <!-- Custom styles for this page only -->
+  {% block style %}
+  <style>
+	.container {
+		max-width: 960px;
+	}
+  </style>
+  {% endblock %}
+
+  <!-- Main content -->
+  {% block content %}
+<div class="container">
+  <main>
+    <div class="py-5 text-center">
+      <img class="d-block mx-auto mb-4" alt="Logo" src="{% static 'assets/dist/media/logo_default.png' %}" height="57" />
+      <h2>Create a user</h2>
+      <p class="lead">Fill the form below to create a new user account.</p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-8">
+        <div class="card bg-opacity-30 border-0">
+          <div class="card-body p-5">
+            <h4 class="mb-4 text-center">Account Details</h4>
+
+            <form class="needs-validation" method="POST" action="{% url 'account_signup' %}" novalidate>
+              {% csrf_token %}
+              <div class="row g-3">
+                <!-- First & Last Name -->
+                <div class="col-sm-6">
+                  {% include 'components/form_fields/field_auto.html' with field=form.first_name %}
+                </div>
+                <div class="col-sm-6">
+                  {% include 'components/form_fields/field_auto.html' with field=form.last_name %}
+                </div>
+                <!-- Gender -->
+                <div class="col-sm-6">
+                  {% include 'components/form_fields/field_auto.html' with field=form.gender %}
+                </div>
+                <!-- DOB -->
+                <div class="col-sm-6">
+                  {% include 'components/form_fields/field_auto.html' with field=form.date_of_birth %}
+                </div>
+                <!-- Email -->
+                <div class="col-12">
+                  {% include 'components/form_fields/field_auto.html' with field=form.email %}
+                </div>
+                <!-- Password -->
+                <div class="col-12">
+                  {% include 'components/form_fields/field_auto.html' with field=form.password1 %}
+                </div>
+                <div class="col-12">
+                  {% include 'components/form_fields/field_auto.html' with field=form.password2 %}
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              <button class="w-100 btn btn-primary btn-lg" type="submit">Create this user</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

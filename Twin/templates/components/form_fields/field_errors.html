@@ -1,0 +1,28 @@
+<!--
+Template for form field errors.
+Author: Yu Akagi
+Last Updated: 2025/03/14
+
+Message fields for form errors.
+
+Note:
+You must add `needs-validation` class and `novalidate` attribute to the <form> tag.
+Form example:
+    <form class="needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
+Bootstrap5 validation https://getbootstrap.com/docs/5.3/forms/validation/
+-->
+
+<!-- begin:: Error messages -->
+{% if field.errors %}
+<div id="{{ field.id_for_label }}-feedback" class="invalid-feedback">
+    {{ field.errors.0 }}
+</div>
+{% elif field.form.is_bound and not field.errors %}
+<div id="{{ field.id_for_label }}-feedback" class="valid-feedback">
+</div>
+{% else %}
+<div id="{{ field.id_for_label }}-feedback" class="invalid-feedback">
+    Please enter a valid {{ field.label }}.
+</div>
+{% endif %}
+<!-- end:: Error messages -->

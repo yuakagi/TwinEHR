@@ -1,0 +1,24 @@
+# Django Framework & Extensions
+Django==5.1.7                   # Web framework
+django-axes==7.0.2              # Account lockout and security
+django-ratelimit==4.1.0         # Rate limit
+
+# Redis
+redis==5.2.1                    # redis-py
+
+# Production Server Packages
+gunicorn==23.0.0                # WSGI HTTP server
+whitenoise==6.9.0               # Static file serving
+
+# SQL Handling
+psycopg==3.2.6
+SQLAlchemy==2.0.31              # SQL toolkit and ORM
+
+# Utility Libraries
+python-dateutil==2.9.0          # Date/time parsing utilities
+requests==2.32.3                # HTTP requests
+pandas==2.2.3                   # Data analysis toolkit
+numpy==2.2.4                    # Numerical computations
+
+# etc
+tqdm==4.67.1

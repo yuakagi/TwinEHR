@@ -1,0 +1,81 @@
+<!--
+  Admission Record Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/21
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Patient header -->
+{% include 'patient/parts/patient_header.html' %}
+
+<!-- begin::Section header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<!-- Section title -->
+	<h2><span><i class="bi bi-hospital-fill"></i></span> Admissions & Discharges</h2>
+</div>
+<!-- end::Section header -->
+
+<!-- Warning for no records-->
+{% if not records %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+	<i class="bi flex-shrink-0 me-2 bi-exclamation-triangle-fill"></i>
+	<div>
+		No records were found.
+	</div>
+</div>
+{% endif %}
+
+<!-- begin:: Record table section -->
+<div class="table-responsive small">
+	<table id="adm-table" class="table table-striped table-hover">
+		<thead>
+			<tr>
+			  <th>Admitted</th>
+			  <th>Discharged</th>
+			  <th>Outcome</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			{% for a, b in records %}
+			<tr>
+			  <td>{{ a.timestamp|date:'Y-m-d' }}</td>
+			  <td>{% if b %}{{ b.timestamp|date:'Y-m-d' }}{% else %}-{% endif %}</td>
+			  <td>
+				{% if b and b.disposition == 1 %}
+				  <span class="badge rounded-pill text-bg-success">alive</span>
+				{% elif b and b.disposition == 0 %}
+				  <span class="badge rounded-pill text-bg-danger">expired</span>
+				{% else %}
+				  <span class="badge rounded-pill text-bg-secondary">ongoing</span>
+				{% endif %}
+			  </td>
+			</tr>
+			{% endfor %}
+		  </tbody>
+		  
+	</table>
+</div>
+<!-- end:: Record table section -->
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+
+// Function to initialize DataTable
+$(document).ready(function () {
+	// Initialize DataTable
+	let tableElement = $("#adm-table");
+	let table = tableElement.DataTable({
+		responsive: true,
+		paging: true,
+		searching: true,
+		lengthMenu: [25, 50, 100],
+		order: [[0, "desc"]] // Sort by first column in descending order
+	});
+});
+</script>
+{% endblock %}
