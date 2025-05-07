@@ -5,11 +5,12 @@ import $ from 'jquery';
 // Import select2 
 import 'select2';
 import 'select2/dist/css/select2.min.css';
-
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 // Import Bootstrap Icons CSS
 import 'bootstrap-icons/font/bootstrap-icons.css';
+// Import Day.js
+import dayjs from 'dayjs';
 // Import Font CSS
 import '@fontsource/inter';
 // Import Bootstrap JS (No need for import 'bootstrap/dist/js/bootstrap.bundle.min.js';)
@@ -43,6 +44,7 @@ import './css/timeline.css';
 // <-- begin: Global exports -->
 window.$ = $;
 window.jQuery = $;
+window.dayjs = dayjs;
 window.Typed = Typed;
 window.Chart = Chart;
 window.ApexCharts = ApexCharts;

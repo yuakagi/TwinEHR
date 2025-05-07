@@ -102,11 +102,9 @@ def search_patients(request: HttpRequest, n_max=1000) -> HttpResponse:
 
     
     if request.method == "POST":
-        print(request.POST)
         if form.is_valid():
 
             cd = form.cleaned_data
-            print(cd)
             base_query = Q()
 
             if cd.get("patient_id"):
@@ -118,12 +116,14 @@ def search_patients(request: HttpRequest, n_max=1000) -> HttpResponse:
             if cd.get("sex"):
                 base_query &= Q(sex=cd["sex"])
             if cd.get("min_age"):
+                min_age = int(cd["min_age"])
                 base_query &= Q(
-                    date_of_birth__gte=(today - relativedelta(years=cd["min_age"]))
+                    date_of_birth__lte=(today - relativedelta(years=min_age))
                 )
             if cd.get("max_age"):
+                max_age = int(cd["max_age"])
                 base_query &= Q(
-                    date_of_birth__lte=(today - relativedelta(years=cd["max_age"]))
+                    date_of_birth__gte=(today - relativedelta(years=max_age))
                 )
 
             patient_list = Patients.objects.filter(base_query).distinct()
@@ -308,7 +308,7 @@ def display_patient_records(
             filter_kwargs = dict(patient=patient)
         else:
             search_start = datetime.strptime(selected_date_str, config.PG_DATE_FORMAT)
-            search_end = search_start + timedelta(days=selected_period - 1)
+            search_end = search_start + timedelta(days=selected_period)
             filter_kwargs = dict(
                 patient=patient, timestamp__range=[search_start, search_end]
             )
@@ -327,7 +327,6 @@ def display_patient_records(
             )
             .order_by("-timestamp")[: max_shown + 1]  # Limit at DB level
         )
-
         # Convert QuerySet into a list of dictionaries (each dictionary as a record)
         records = list(records_qs.values())
 
@@ -339,7 +338,6 @@ def display_patient_records(
             records = records[:max_shown]
     else:
         records = []
-
     # Return JSON if AJAX
     if ajax:
         if records:
@@ -510,13 +508,14 @@ def patients_lab_chart(request: HttpRequest, pk: str, item_code: str) -> HttpRes
     # Clean data
     data = []
     units = []
-    item_name = lab_results.last().item_name if lab_results else "(no label)"
+    item_code = lab_results[0].item_code if lab_results else "(no label)"
+    lab_code_map = LabTestCodes.objects.filter(item_code=item_code).first()
+    item_name = lab_code_map.item_name if lab_code_map else item_code
     for result in lab_results:
         x = result.timestamp.strftime(config.PG_DATETIME_FORMAT)
         y = float(result.numeric)
         data.append({"x": x, "y": y})
         units.append(result.unit)
-
     # Render the page
     common_context = _get_patient_base_contexts(patient, request.user)
     return render(

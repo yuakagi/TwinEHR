@@ -92,7 +92,7 @@ class ClinicalRecordSelectionForm(forms.Form):
     period = forms.IntegerField(
         label=_("Select period (days)"),
         min_value=1,
-        max_value=30,
+        max_value=365,
         required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )

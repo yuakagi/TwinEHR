@@ -12,7 +12,9 @@
 		Add an icon is a good option.
 	3. Add headers and rows in the block `tablecontent`  using `records`
 		Adding <thead> and <tbody> is expected.
-	4. Override `redrawTable` in the child page 
+	4. Override `block page_url` in the child page 
+		Set the child page URL (URL for AJAX) in f`block page_ur`. 
+	5. Override `redrawTable` in the child page 
 		Re-define `redrawTable` in `block script`. 
 		Call `block.super` to keep the scripts of this page.
 	
@@ -31,14 +33,13 @@
 	<!-- Side buttons -->
 	{% if record_form %}
 	<div class="btn-toolbar mb-2 mb-md-0">
-		<form id="recordForm" method="POST">
+		<form id="recordForm" method="POST" data-url="{% block page_url %}{% endblock %}">
 			{% csrf_token %}
-			<div class="input-group flex-wrap">
+			<div class="input-group align-items-end">
 				{% include 'components/form_fields/field_auto.html' with field=record_form.date_selection %}
 				{% include 'components/form_fields/field_auto.html' with field=record_form.period %}
-				<div class="mb-3">
-					<label class="form-label visually-hidden" for="submit-btn">Submit Simulation</label>
-					<button class="btn btn-primary " type="submit">Submit</button>
+				<div class="mb-3 align-self-end">
+					<button id="record-form-btn" class="btn btn-primary " type="submit">Submit</button>
 				</div>
 			</div>
 		</form>
@@ -73,6 +74,7 @@
 <script src="{% static 'assets/dist/js/ajax_form.js' %}"></script>
 
 <script>
+
 /*
  * Default (empty) redrawTable — meant to be overridden in child templates.
  */
@@ -82,6 +84,8 @@
 
 // General Constants
 let tableId = "recordTable";  
+const recordForm = $("#recordForm");
+const pageUrl = recordForm.data("url");
 
 // Function to initialize DataTable
 function initTable(tableId) {
@@ -110,14 +114,12 @@ $(document).ready(function () {
 	// Initialize DataTable
 	let table = initTable(tableId);
 	// Handle form submission with AJAX
-	$("#recordForm").on("submit", function (event) {
+	recordForm.on("submit", function (event) {
 		// Prevent default submission
 		event.preventDefault();
-		// Const
-		const url = "{% url 'patients_laboratory_results' patient.pk %}";
 		// AJAX handling
 		// Note: Passing additional argument `table` to redrawTable using Arrow Function
-		handleAjaxForm(url, "recordForm", (data) => redrawTable(data, table), function () {}, function () {});
+		handleAjaxForm(pageUrl, "recordForm", (data) => redrawTable(data, table), function () {}, function () {});
 	});
 });
 

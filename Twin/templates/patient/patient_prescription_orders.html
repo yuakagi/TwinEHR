@@ -12,6 +12,11 @@
 <span><i class="bi bi-prescription"></i></span> Prescription Orders
 {% endblock %}
 
+<!-- Page url-->
+{% block page_url %}
+  {% url "patients_prescription_orders" patient.pk %}
+{% endblock %}
+
 {% block tablecontent %}
 <!-- begin:: Record table section -->
 <thead>
@@ -41,8 +46,8 @@ function redrawTable (data, table) {
 		// Clear existing table data
 		table.clear();
 		// Add new rows
-		const formattedTime = d.timestamp ? dayjs(d.timestamp).format("YYYY-MM-DD HH:mm") : "";
 		data.records.forEach(d => {
+			const formattedTime = d.timestamp ? dayjs(d.timestamp).format("YYYY-MM-DD HH:mm") : "";
 			table.row.add([
 				formattedTime,
 				d.item_code || "",

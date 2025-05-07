@@ -1,5 +1,6 @@
 """Forms"""
 
+from datetime import datetime
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.utils.translation import gettext_lazy as _
@@ -44,7 +45,7 @@ class CustomUserChangeAdminForm(UserChangeForm):
         fields = "__all__"
 
 
-class CustomUserChangeEditForm(UserChangeForm):
+class CustomUserChangeForm(UserChangeForm):
     """Form for modifying user profile information.
 
     Args:
@@ -71,6 +72,14 @@ class CustomUserChangeEditForm(UserChangeForm):
         # Remove 'is_staff' field for non-superusers
         if self.user and not self.user.is_superuser:
             self.fields.pop("is_staff", None)
+
+         # If we have an instance with a DOB, format it for the date‑input
+        dob = getattr(self.instance, 'date_of_birth', None)
+        if dob:
+            # Ensure it's a date or datetime
+            if isinstance(dob, datetime):
+                dob = dob.date()
+            self.initial['date_of_birth'] = dob.strftime('%Y-%m-%d')
 
 
 class RelationEditForm(forms.ModelForm):

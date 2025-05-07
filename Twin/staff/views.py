@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from accounts.models import CustomUser
-from accounts.forms import CustomUserChangeEditForm
+from accounts.forms import CustomUserChangeForm
 from .forms import UserSearchForm
 
 
@@ -65,14 +65,14 @@ def user_edit_view(request: HttpRequest, pk: str) -> HttpResponse:
     )
     if user.is_staff:
         if request.method == "GET":
-            form = CustomUserChangeEditForm(instance=account, user=user)
+            form = CustomUserChangeForm(instance=account, user=user)
             return render(
                 request,
                 "staff/user_edit.html",
                 {"account": account, "form": form},
             )
         if request.method == "POST":
-            form = CustomUserChangeEditForm(request.POST, instance=account, user=user)
+            form = CustomUserChangeForm(request.POST, instance=account, user=user)
             if form.is_valid():
                 form.save()
                 messages.success(

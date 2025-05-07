@@ -27,7 +27,7 @@ Bootstrap5 validation https://getbootstrap.com/docs/5.3/forms/validation/
                 name="{{ field.name }}" 
                 id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
                 class="form-control bg-white {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
-                value="{% if tag == 'DateInput' %}{{ field.value|date:'Y-m-d' }}{% elif tag == 'DateTimeInput' %}{{ field.value|date:'Y-m-d\TH:i' }}{% elif tag == 'TimeInput' %}{{ field.value|date:'H:i' }}{% else %}{{ field.value|default:'' }}{% endif %}"
+                value="{{ field.value|default:'' }}"
                 placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
                 autocomplete="off"
                 {% if field.field.required %}required{% endif %}

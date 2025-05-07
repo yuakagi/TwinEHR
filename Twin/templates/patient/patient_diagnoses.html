@@ -13,6 +13,10 @@
 <span><i class="bi bi-pencil-square"></i></span> Diagnosis Records
 {% endblock %}
 
+<!-- Page url-->
+{% block page_url %}
+  {% url "patients_diagnoses" patient.pk %}
+{% endblock %}
 
 <!-- begin:: Record table section -->
 {% block tablecontent %}
@@ -45,7 +49,6 @@
 {% block script %}
 {{ block.super }}
 <script>
-
 // Override the function to redraw datatable uisng AJAX response
 function redrawTable (data, table) {
 		// Clear existing table data

@@ -18,7 +18,7 @@
   </h1>
 </div>
 
-{% if not records %}
+{% if not data_dict %}
 <!-- Warning for no records -->
 <div class="alert alert-warning d-flex align-items-center" role="alert">
   <i class="bi flex-shrink-0 me-2 bi-exclamation-triangle-fill"></i>
@@ -31,8 +31,9 @@
 {% endblock %}
 
 
-{% block javascript %}
-<script>
+{% block script %}
+{{ block.super }}
+<script >
 	document.addEventListener("DOMContentLoaded", function () {
 	const dataDict = {{ data_dict|safe }};
 	if (!dataDict || !dataDict.length) return;
@@ -80,30 +81,12 @@
 			}
 		},
 		scales: {
-			x: {
-			type: 'time',
-			time: {
-				unit: 'day',
-				displayFormats: {
-				day: 'MMM d'
-				},
-				tooltipFormat: 'yyyy-MM-dd HH:mm'
-			},
-			title: {
-				display: true,
-				text: 'Date',
-				font: { weight: 'bold' }
+				xAxes: [{
+					type: 'time',
+					distribution: 'series'
+				}]
 			}
-			},
-			y: {
-			beginAtZero: false,
-			title: {
-				display: true,
-				text: '{{ unit|default:"Value" }}',
-				font: { weight: 'bold' }
-			}
-			}
-		}
+		
 		}
 	});
 	});

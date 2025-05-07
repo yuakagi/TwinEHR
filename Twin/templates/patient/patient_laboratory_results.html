@@ -12,6 +12,11 @@
 <span><i class="bi bi-clipboard-data-fill"></i></span> Laboratory Test Results
 {% endblock %}
 
+<!-- Page url-->
+{% block page_url %}
+  {% url "patients_laboratory_results" patient.pk %}
+{% endblock %}
+
 {% block tablecontent %}
 <!-- begin:: Record table section -->
 <thead>
