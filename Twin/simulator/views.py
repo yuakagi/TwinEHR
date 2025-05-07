@@ -373,21 +373,43 @@ def simulation_page_view(request: HttpRequest):
     """Renders page for simulations."""
     if request.method == "GET":
         sim_request_form = SimulationRequestForm(user=request.user)
-        sim_browse_form = SimulationBrowseForm()
         return render(
             request,
             "simulator/simulator_main.html",
-            {"sim_request_form": sim_request_form,
-             "sim_browse_form":sim_browse_form},
+            {"sim_request_form": sim_request_form,},
         )
     
 @login_required
 @csrf_protect
 def browse_simulation(request: HttpRequest):
-    """Renders page for simulations."""
-    if request.method == "POST":
-        form = SimulationBrowseForm(request.POST, user=request.user)
-        
+    """AJAX endpoint to browse simulation by request ID and simulation number."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed."}, status=405)
+
+    try:
+        request_id = int(request.POST.get("request_id"))
+        sim_no = int(request.POST.get("simulation_number"))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Invalid request ID or simulation number."}, status=400)
+
+    sim_req = get_object_or_404(SimulationRequest, pk=request_id)
+
+    try:
+        field_names = SimulationResult.get_column_names()
+        df = pd.DataFrame.from_records(
+            SimulationResult.objects.filter(
+                request_id=sim_req.request_id,
+                simulation_number=sim_no
+            ).values(*field_names)
+        )
+        timeline_html = _render_timeline_html(df)
+
+        return JsonResponse({"timeline_html": timeline_html}, status=200)
+
+    except Exception as e:
+        return JsonResponse(
+            {"error": f"Simulation rendering failed: {str(e)}"}, status=500
+        )
 
 
 @login_required
@@ -526,12 +548,18 @@ def retrieve_simulation_results(request: HttpRequest):
             # Prepare data for graph rendering (use all simulations)
             graph_data = _render_all_graphs(df)
 
+            # Render form for browsing simulation results
+            sim_browse_form = SimulationBrowseForm(
+                request.POST, request_id=request_id, max_sim_no=max_sim_no,selected_sim_no=median_sim_no
+            )
+
             return JsonResponse(
                 {
                     "timeline_html": timeline_html,
                     "selected_sim_no": median_sim_no,
                     "max_sim_no": max_sim_no,
                     "graph_data": graph_data,
+                    "sim_browse_form":sim_browse_form
                 },
                 status=200,
             )

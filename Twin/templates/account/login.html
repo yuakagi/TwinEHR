@@ -53,6 +53,7 @@
           <!-- end:: Form heading -->
 
           <!-- begin:: Signin form　-->
+          {% include 'components/form_fields/non_field_errors.html' with form=form %}
           <!-- You need `novalidate` to disable browser's default validators.-->
           <form id="login-form" class="needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
             {% csrf_token %}
@@ -73,6 +74,8 @@
             <!-- end:: Submit button -->
           </form>
           <!-- end:: Signin form -->
+          
+
 
           <!-- begin:: Sign up link-->
           <div class="text-secondary fw-semibold mt-3">
@@ -83,6 +86,7 @@
         <!-- begin:: Card footer -->
         <div class="card-footer text-center text-muted">
           <p class="mb-0">&copy; 2025</p>
+
         </div>
         <!-- end:: Card footer -->
       </div>

@@ -33,10 +33,13 @@
 	<div class="btn-toolbar mb-2 mb-md-0">
 		<form id="recordForm" method="POST">
 			{% csrf_token %}
-			<div class="d-flex align-items-end gap-2 flex-wrap">
+			<div class="input-group flex-wrap">
 				{% include 'components/form_fields/field_auto.html' with field=record_form.date_selection %}
 				{% include 'components/form_fields/field_auto.html' with field=record_form.period %}
-				<button class="btn btn-primary " type="submit">Submit</button>
+				<div class="mb-3">
+					<label class="form-label visually-hidden" for="submit-btn">Submit Simulation</label>
+					<button class="btn btn-primary " type="submit">Submit</button>
+				</div>
 			</div>
 		</form>
 	</div>

@@ -46,14 +46,24 @@ class SimulationBrowseForm(forms.Form):
     )
     simulation_number = forms.IntegerField(
         label=_("Simulation Number"),
-        required=True
+        required=True,
+        min_value=0,
+        max_value=1000
     )
 
     def __init__(self, *args, **kwargs):
         request_id = kwargs.pop("request_id", None)
+        max_sim_no = kwargs.pop("max_sim_no", None)
+        selected_sim_no = kwargs.pop("selected_sim_no", None)
         super().__init__(*args, **kwargs)
 
         if request_id is not None:
             queryset = SimulationRequest.objects.filter(pk=request_id)
             self.fields["request_id"].queryset = queryset
             self.fields["request_id"].initial = queryset.first()
+
+        if max_sim_no is not None:
+            self.fields["simulation_number"].max_value = max_sim_no
+
+        if selected_sim_no is not None:
+            self.fields["simulation_number"].initial = selected_sim_no

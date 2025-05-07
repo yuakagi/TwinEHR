@@ -265,7 +265,13 @@ def display_patient_records(
 
     # ***** Handle POST request *****
     elif request.method == "POST":
-        form = ClinicalRecordSelectionForm(data=request.POST)
+        # Create form
+        # NOTE: The default choices are empty, therefore, you need dates=[selected_date_raw]... part
+        selected_date_raw = request.POST.get("date_selection")
+        form = ClinicalRecordSelectionForm(
+            data=request.POST,
+            dates=[selected_date_raw] if selected_date_raw else [],
+            )
         if form.is_valid():
             selected_date_str = form.cleaned_data["date_selection"]
             selected_period = form.cleaned_data["period"]

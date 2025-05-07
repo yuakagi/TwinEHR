@@ -146,7 +146,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 # Axes settings
 AXES_FAILURE_LIMIT = 10  # Number of failed login attempts before lockout
-AXES_COOLOFF_TIME = 1  # Lockout time in hours (set to None for permanent)
+AXES_COOLOFF_TIME = 0  # Lockout time in hours (set to None for permanent)
 AXES_RESET_ON_SUCCESS = True  # Reset count after successful login
 
 

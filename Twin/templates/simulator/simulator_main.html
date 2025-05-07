@@ -96,8 +96,8 @@
         <!--begin::Card header-->
         <div class="card-header pt-4 pb-2">
           <div class="card-title d-flex flex-column w-100" id="sim_browse_header_default">
-            <h3 class="fw-bold mb-1">No simulation result available. Please run simulations.</h3>
-            <div class="fs-6 fw-semibold text-muted">An example trajectory is displayed below.</div>
+            <h3 class="fw-bold mb-1">Examine your simulation results one by one.</h3>
+            <div class="fs-6 fw-semibold text-muted">Timelines are displayed below once they are ready.</div>
           </div>
           <div class="card-title d-flex flex-column visually-hidden w-100" id="sim_browse_header">
             <h3 class="fw-bold mb-1">Select a result from the box on the right</h3>
@@ -108,12 +108,15 @@
   
           <!--begin::Card toolbar-->
           <div class="card-toolbar mt-3" id="sim_browse_form_wrapper">
-            <div class="input-group">
-              <span class="input-group-text bg-primary text-light">Simulation No.</span>
-              <input id="simNoInput" type="number" class="form-control" name="value" min="0" max="256" step="1" style="max-width: 100px;" disabled>
-              <input id="reqNoInput" type="hidden" name="request_id" value="">
-              <button class="btn btn-primary" type="button" disabled>Submit</button>
-            </div>
+            <form id="simRequestForm" class="needs-validation" method="POST" action="{% url 'simulator_submit_request' %}" novalidate>
+              {% csrf_token %}
+              <div class="input-group">
+                <span class="input-group-text bg-primary text-light">Simulation No.</span>
+                <input id="simNoInput" name="simulation_number" type="number" class="form-control" name="value" min="0" max="256" step="1" style="max-width: 100px;" disabled>
+                <input id="reqNoInput" name="request_id" type="hidden" name="request_id" value="">
+                <button id="sim-browse-btn" class="btn btn-primary" type="button" disabled>Submit</button>
+              </div>
+           </form>
           </div>
           <!--end::Card toolbar-->
 
@@ -319,7 +322,8 @@
 	const simRunBtn = $('#simRunButton'),
 		renderedTimeline = $('#renderedTimeline'),
     simNoInput = $('#simNoInput'),
-    reqNoInput = $('#reqNoInput');
+    reqNoInput = $('#reqNoInput'),
+    simBrowseBtn = $('#sim-browse-btn');
 	// Get csrf token
   const csrftoken = getCookie('csrftoken');
 
@@ -335,6 +339,7 @@
 	function refreshTimeline(new_tl) {
 		renderedTimeline.html(new_tl);
 	}
+  
 
   // Function for submitting simulation request
   function submitSimRequest(simReqForm, simReqData, onSuccess) {
@@ -343,7 +348,6 @@
         html: 'Status: request being submitted',
         allowOutsideClick: false,
         allowEscapeKey: true,
-        showConfirmButton: false,
         didOpen: () => {
           Swal.showLoading();  // Shows spinner
         }
@@ -369,6 +373,8 @@
         });
         // Callback with results
         onSuccess({ simulationID, requestID, patientID });
+        // Reset form validation
+        resetFormValidation(simReqForm);
       },
       
       // Request failed
@@ -457,10 +463,12 @@
             }
 
           } else if (statusCode === 200) {
+            // Enable simulation browse button
             simNoInput.attr('max', data.max_sim_no);
             simNoInput.val(data.selected_sim_no);
             simNoInput.prop("disabled", false);
             reqNoInput.val(requestID);
+            simBrowseBtn.prop("disabled", false);
             // Render timeline
             refreshTimeline(data.timeline_html);
             Swal.fire({
@@ -524,6 +532,83 @@
     poll(); // Start the first call
   }
   
+  // Function for browsing
+  function browseTimeline() {
+    const simulationNo = $('#simNoInput').val();
+    const requestID = $('#reqNoInput').val();
+
+    // Basic input validation
+    if (!requestID || simulationNo === "") {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing input',
+        text: 'Please enter both a request ID and simulation number.',
+        confirmButtonText: 'OK'
+      });
+      return Promise.resolve(); // Exit early, return a resolved promise
+    }
+
+    // Show loading modal
+    Swal.fire({
+      title: 'Loading simulation...',
+      html: 'Please wait...',
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading(); // Spinner
+      }
+    });
+
+    // AJAX request
+    return $.ajax({
+      type: 'POST',
+      url: "{% url 'simulator_browse' %}",
+      headers: {
+        'X-Request-Type': 'post',
+        'X-CSRFToken': csrftoken
+      },
+      data: {
+        request_id: requestID,
+        simulation_number: simulationNo,
+      },
+      dataType: 'json',
+      timeout: 30000,
+      success: function (data) {
+        refreshTimeline(data.timeline_html);
+        Swal.close();
+      },
+      error: function (xhr) {
+        const statusCode = xhr.status;
+
+        if (statusCode === 400) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Bad Request (400)',
+            html: 'Invalid form inputs.',
+            confirmButtonText: 'OK'
+          });
+        } else if (statusCode === 500) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Server Error',
+            html: 'The server encountered an error. Please try again later.',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to load simulations',
+            html: 'The server could not be reached.<br>Please try again later.',
+            confirmButtonText: 'OK'
+          });
+        }
+      }
+    });
+  }
+
+
+
 	// Simulation run button
 	simRunBtn.click(function (event) {
     event.preventDefault();
@@ -543,8 +628,23 @@
       startPolling(simulationID, requestID, patientID);
     });
     // Enable submit button
-    simRunBtn.prop("disabled", true);
+    simRunBtn.prop("disabled", false);
 	  })
+
+  // Simulation browse button
+  simBrowseBtn.click(function (event) {
+    event.preventDefault();
+
+    // Disable browse button to prevent multiple clicks
+    simBrowseBtn.prop("disabled", true);
+
+    // Download and display the selected simulation
+    browseTimeline().finally(() => {
+      // Re-enable browse button after AJAX completes
+      simBrowseBtn.prop("disabled", false);
+    });
+  });
+
 
   // Function to generate ApexCharts area chart options
   function createChartOptions({

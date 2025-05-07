@@ -79,7 +79,11 @@ services:
           python3 manage.py collectstatic --noinput && \
           python3 manage.py makemigrations --noinput && \
           python3 manage.py migrate --noinput && \
-          gunicorn --workers=$$GUNICORN_WORKERS --bind 0.0.0.0:8000 Twin.wsgi:application;
+          if [ \"$$DJANGO_DEBUG\" = \"true\" ]; then \
+            python3 manage.py runserver 0.0.0.0:8000; \
+          else \
+            gunicorn --workers=$$GUNICORN_WORKERS --bind 0.0.0.0:8000 Twin.wsgi:application; \
+          fi
         "
 
 volumes:

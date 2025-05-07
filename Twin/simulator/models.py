@@ -93,7 +93,6 @@ class SimulationResult(models.Model):
     @classmethod
     def get_column_names(cls):
         """Returns column names for pandas DataFrame."""
-        # NOTE: This method appends '_id' for foreign key field names.
         fields = [
             field.name
             for field in cls._meta.get_fields()
