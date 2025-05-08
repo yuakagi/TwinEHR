@@ -1,0 +1,199 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; TwinEHR  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/color_theme.css?v=2a17d959" />
+      <link rel="stylesheet" type="text/css" href="_static/color_theme.css?v=2a17d959" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TwinEHR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#setup-database-ai-and-api-server">1. Setup database, AI, and API server</a></li>
+<li><a class="reference internal" href="#clone-repository-and-configure-env">2. Clone repository and configure .env</a></li>
+<li><a class="reference internal" href="#initialize-django-site">2. Initialize Django site</a></li>
+<li><a class="reference internal" href="#use-twinehr">3. Use TwinEHR</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TwinEHR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#setup-database-ai-and-api-server" id="id1">1. Setup database, AI, and API server</a></p></li>
+<li><p><a class="reference internal" href="#clone-repository-and-configure-env" id="id2">2. Clone repository and configure .env</a></p></li>
+<li><p><a class="reference internal" href="#initialize-django-site" id="id3">2. Initialize Django site</a></p></li>
+<li><p><a class="reference internal" href="#use-twinehr" id="id4">3. Use TwinEHR</a></p></li>
+</ul>
+</nav>
+<section id="setup-database-ai-and-api-server">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">1. Setup database, AI, and API server</a><a class="headerlink" href="#setup-database-ai-and-api-server" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p>Please complete this step using our another repository (<a class="reference external" href="https://github.com/yuakagi/Watcher">https://github.com/yuakagi/Watcher</a>).
+Prepare your clinical record database (PostgreSQL) and the simulator AI (Watcher).
+Finally, launch the simulator API server (gunicorn + Flask) using Watcher.</p>
+</div></blockquote>
+</section>
+<section id="clone-repository-and-configure-env">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">2. Clone repository and configure .env</a><a class="headerlink" href="#clone-repository-and-configure-env" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p>Steps:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Clone repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/path/to/your/working_dir
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yuakagi/TwinEHR
+</pre></div>
+</div>
+</li>
+</ol>
+<ol class="arabic" start="3">
+<li><p>Configure .env file</p>
+<p>There is a file named <cite>.env.example</cite> in the root directory.
+Please <strong>rename this file to .env</strong> and configure the parameters in it.</p>
+<p>First, you need to generate Django’s secret key.
+Run the following command in your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">django</span><span class="o">==</span><span class="m">5</span>.1.7
+python<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())&#39;</span>
+</pre></div>
+</div>
+<p>This will print random 50 characters in your terminal. This is the Django’s secret key.
+Please <strong>copy and paste this in SECRET_KEY</strong> in the .env file.</p>
+<p>Then, remove .venv</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>deactivate
+rm<span class="w"> </span>-rf<span class="w"> </span>.venv
+</pre></div>
+</div>
+<p>Finally, configure other parameters in the .env file.</p>
+</li>
+</ol>
+</div></blockquote>
+</div></blockquote>
+</section>
+<section id="initialize-django-site">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">2. Initialize Django site</a><a class="headerlink" href="#initialize-django-site" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p>Steps:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Run docker compose</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/path/to/your/working_dir
+docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</pre></div>
+</div>
+<p>This will create a Docker container for the Django web server and PostgreSQL database.
+Then, it will also automatically run your django server inside the container.</p>
+</li>
+<li><p>Create a superuser</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>twinehr-django_web-1<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>createsuperuser
+</pre></div>
+</div>
+<p>Launches an interactive shell inside the container to create a Django superuser.
+(When prompted, choose gender from: F (Female), M (Male), O (Other).)</p>
+</li>
+</ol>
+</div></blockquote>
+</div></blockquote>
+</section>
+<section id="use-twinehr">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">3. Use TwinEHR</a><a class="headerlink" href="#use-twinehr" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p>Open a web browser (e.g., Chrome or Safari).
+Then, navigate to: <a class="reference external" href="http:/">http:/</a>/${HOST}:${DJANGO_PORT}</p>
+<p>HOST and DJANGO_PORT are defined in your .env file.
+For example, if HOST=123.45.67.01 and DJANGO_PORT=63435, the URL will be <a class="reference external" href="http://123.45.67.01:63435">http://123.45.67.01:63435</a>.</p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Yu Akagi, MD.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
