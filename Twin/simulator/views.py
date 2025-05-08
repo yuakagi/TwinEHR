@@ -70,29 +70,16 @@ DISCHARGE_RESULT_DICT = {
 }
 
 BROAD_ABX = [
-            "J01XA",  # Glycopeptide antibiotics (including vancomycin and teicoplanin)
-            "J01XX08",  # linezolid
-            "J01XX09",  # daptomycin
+            "Vancomycin",
+            "Linezolid",
+            "Daptomycin"
         ]
 
 LAB_CODES = {
-    "serum_sodium": "3H0100000023---01",
+    "serum_sodium": {"keywords":["serum", "sodium", "quantitative"], "units":["mmol/L", "mEq/L", "meq/L"]},
     # Potassium
-    "serum_potassium": "3H0150000023---01",
-    # Chloride
-    "serum_chloride": "3H0200000023---01",
-}
+    "serum_potassium": {"keywords":["serum", "potassium", "quantitative"], "units":["mmol/L", "mEq/L", "meq/L"]},
 
-# Neutropenia
-# ANC = WBC * neutrophil fraction
-NEUTROPENIA_SETS = {
-    "wbc_code": "2A9900000019---52",  # CBC (complete blood count), , whole blood(with additive), white blood cell count
-    "neutrophil_code": [
-        "2A1600000019---51",  # whole blood result, unit = %
-        "2A1600000034---51",  # blood smear result, unit = %. This one is less frequent.
-    ],
-    "wbc_unit": "×10^3/μL",
-    "wbc_const": 1000,
 }
 
 # endregion
@@ -114,71 +101,29 @@ def _extract_numeric_from_text(col: pd.Series) -> pd.Series:
     return num_col
 
 
-def _extract_lab_values(df: pd.DataFrame, target_code: str, unit: str) -> pd.DataFrame:
+def _extract_lab_values(df: pd.DataFrame, keywords: list[str], units:list[str]) -> pd.DataFrame:
     """Extract target laboratory results from a table.
     Args:
         df (pd.DataFrame): Input table.
-        target_code (str): Target code.
-        unit (str): Unit.
+        keywords (list[str]): Keywords to search lab tests. (Case INsensitive)
+            e.g., ["serum", "sodium"]
+        unit (list[str]): List of valid units. (Case sensitive)
     Returns:
         df_labs (pd.DataFrame): Table with target laboratory test results only.
     """
-    lab_mask = (df["code"] == target_code) & (df["result"].str.endswith(unit))
-    df_labs = df.loc[lab_mask, ["simulation_number", "timestamp", "result"]].copy()
+    for kw in keywords:
+        kw_mask = df["text"].str.contains(kw, case=False)
+        df = df.loc[kw_mask]
+    for un in units:
+        un_mask = df["result"].str.endswith(un)
+        df = df.loc[un_mask]
+    df_labs = df.loc[:,["simulation_number", "timestamp", "result"]].copy()
     df_labs["numeric"] = _extract_numeric_from_text(df_labs["result"])
     df_labs = df_labs.loc[df_labs["numeric"].notna()]
     df_labs = df_labs[["simulation_number", "timestamp", "numeric"]]
 
     return df_labs
 
-
-def _compute_anc(df: pd.DataFrame) -> pd.DataFrame:
-    """Calculate absolute nutrophil counts using wbc and neutrophil fractions.
-    If duplicated counts are found, lower ones are selected.
-    Args:
-        df (pd.DataFrame): Input table.
-    Returns:
-        ancs (pd.DataFrame): Output table with absolute neutrophil counts.
-            This table only contains three columns: patient ID, age and anc.
-            (* anc for absolute neutrophil counts.)
-    """
-    wbc_code = NEUTROPENIA_SETS["wbc_code"]
-    wbc_unit = NEUTROPENIA_SETS["wbc_unit"]
-    wbc_const = NEUTROPENIA_SETS["wbc_const"]
-    neut_coudes = NEUTROPENIA_SETS["neutrophil_code"]
-    # Select WBCs
-    wbcs = df.loc[
-        (df["code"] == wbc_code) & (df["result"].str.endswith(wbc_unit))
-    ].copy()
-    wbcs["numeric"] = wbcs["result"].str.extract(r"(\d+\.?\d*)", expand=True)
-    wbcs["numeric"] = pd.to_numeric(wbcs["numeric"], errors="coerce")
-    wbcs = wbcs.loc[~wbcs["numeric"].isna()]
-    wbcs["numeric"] = wbcs["numeric"] * wbc_const
-    wbcs = wbcs.rename(columns={"numeric": "wbc"})
-    wbcs = wbcs[["simulation_number", "timestamp", "wbc"]]
-    # Select neutrophil fractions
-    neuts = df.loc[
-        (df["code"].isin(neut_coudes)) & (df["result"].str.endswith("%"))
-    ].copy()
-    neuts["numeric"] = neuts["result"].str.extract(r"(\d+\.?\d*)", expand=True)
-    neuts["numeric"] = pd.to_numeric(neuts["numeric"], errors="coerce")
-    neuts = neuts.loc[~neuts["numeric"].isna()]
-    neuts["numeric"] = neuts["numeric"] * 0.01  # % -> fraction
-    neuts = neuts.rename(columns={"numeric": "neut"})
-    neuts = neuts[["simulation_number", "timestamp", "neut"]]
-    # Compute ANC
-    ancs = pd.merge(wbcs, neuts, how="left", on=["simulation_number", "timestamp"])
-    ancs["anc"] = ancs["wbc"] * ancs["neut"]
-    ancs = ancs[["simulation_number", "timestamp", "anc"]]
-    # Sort and drop duplicates (* Latest value comes first)
-    ancs = ancs.sort_values(
-        ["simulation_number", "timestamp", "anc"], ascending=[True, False, True]
-    )
-    ancs = ancs.drop_duplicates(["simulation_number", "timestamp"], keep="first")
-    # Drop missing ANC (either wbc or neutrofil fraction missing)
-    ancs = ancs.dropna(subset=["anc"])
-
-    return ancs
 
 
 def _render_timeline_html(df: pd.DataFrame):
@@ -273,7 +218,7 @@ def _render_all_graphs(df: pd.DataFrame):
             },
             "labels": [],
         },
-        "anc": {
+        "serum_potassium": {
             "values": {
                 "high": [],
                 "median": [],
@@ -303,6 +248,7 @@ def _render_all_graphs(df: pd.DataFrame):
         dsc_data["values"]["all"].append(all_dsc_rate)
         dsc_data["values"]["death"].append(exp_dsc_rate)
         dsc_data["labels"].append(date_str)
+        
 
         # Antibiotics
         abx_data = data["broad_antibiotics"]
@@ -310,7 +256,7 @@ def _render_all_graphs(df: pd.DataFrame):
             np.full(len(cum_date_df), False), index=cum_date_df.index
         )
         for c in BROAD_ABX:
-            broad_abx_mask = broad_abx_mask | cum_date_df["code"].str.startswith(c)
+            broad_abx_mask = broad_abx_mask | cum_date_df["text"].str.contains(c, case=False)
         broad_abx_mask = broad_abx_mask & cum_date_df["type"].isin([4, 5])
         abx_df = cum_date_df.loc[broad_abx_mask]
         n_borad_abx = abx_df["simulation_number"].nunique()
@@ -321,8 +267,9 @@ def _render_all_graphs(df: pd.DataFrame):
         # Events by date
         # Sodium
         sodium_data = data["serum_sodium"]
-        sodium_code = LAB_CODES["serum_sodium"]
-        sodium_df = _extract_lab_values(date_df, target_code=sodium_code, unit="mmol/L")
+        sodium_keywords = LAB_CODES["serum_sodium"]["keywords"]
+        sodium_units = LAB_CODES["serum_sodium"]["units"]
+        sodium_df = _extract_lab_values(date_df, target_code=sodium_keywords, unit=sodium_units)
         if sodium_df.size:
             min_sodium_vals = (
                 sodium_df.groupby("simulation_number")["numeric"].min().values
@@ -341,20 +288,28 @@ def _render_all_graphs(df: pd.DataFrame):
             sodium_data["values"]["low"].append(round(sodium_10_pctl, 1))
             sodium_data["labels"].append(date_str)
 
-        # ANC
-        anc_data = data["anc"]
-        anc_df = _compute_anc(df=date_df)
-        if anc_df.size:
-            min_anc_vals = anc_df.groupby("simulation_number")["anc"].min().values
-            max_anc_vals = anc_df.groupby("simulation_number")["anc"].max().values
-            mean_anc_vals = anc_df.groupby("simulation_number")["anc"].mean().values
-            anc_90_pctl = np.percentile(max_anc_vals, 90)
-            anc_med = np.median(mean_anc_vals)
-            anc_10_pctl = np.percentile(min_anc_vals, 10)
-            anc_data["values"]["high"].append(int(anc_90_pctl))
-            anc_data["values"]["median"].append(int(anc_med))
-            anc_data["values"]["low"].append(int(anc_10_pctl))
-            anc_data["labels"].append(date_str)
+        # Potassium
+        potassium_data = data["serum_potassium"]
+        potassium_keywords = LAB_CODES["serum_potassium"]["keywords"]
+        potassium_units = LAB_CODES["serum_potassium"]["units"]
+        potassium_df = _extract_lab_values(date_df, target_code=potassium_keywords, unit=potassium_units)
+        if potassium_df.size:
+            min_potassium_vals = (
+                potassium_df.groupby("simulation_number")["numeric"].min().values
+            )
+            max_potassium_vals = (
+                potassium_df.groupby("simulation_number")["numeric"].max().values
+            )
+            mean_potassium_vals = (
+                potassium_df.groupby("simulation_number")["numeric"].mean().values
+            )
+            potassium_90_pctl = np.percentile(max_potassium_vals, 90)
+            potassium_med = np.median(mean_potassium_vals)
+            potassium_10_pctl = np.percentile(min_potassium_vals, 10)
+            potassium_data["values"]["high"].append(round(potassium_90_pctl, 1))
+            potassium_data["values"]["median"].append(round(potassium_med, 1))
+            potassium_data["values"]["low"].append(round(potassium_10_pctl, 1))
+            potassium_data["labels"].append(date_str)
 
     return data
 
