@@ -63,7 +63,7 @@ class SimulationResult(models.Model):
     """Simulator results"""
 
     # Simulation request as foreign key
-    request_id = models.ForeignKey(
+    request = models.ForeignKey(
         SimulationRequest,
         on_delete=models.CASCADE,
         verbose_name=_("simulation request"),
@@ -93,9 +93,8 @@ class SimulationResult(models.Model):
     @classmethod
     def get_column_names(cls):
         """Returns column names for pandas DataFrame."""
-        fields = [
-            field.name
-            for field in cls._meta.get_fields()
-            if not field.auto_created
+        return [
+            f.attname       # 'request_id' for FK, 'timestamp', ...
+            for f in cls._meta.concrete_fields   # only real columns
+            if f.attname!="id"
         ]
-        return fields

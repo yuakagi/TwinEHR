@@ -269,7 +269,7 @@ def _render_all_graphs(df: pd.DataFrame):
         sodium_data = data["serum_sodium"]
         sodium_keywords = LAB_CODES["serum_sodium"]["keywords"]
         sodium_units = LAB_CODES["serum_sodium"]["units"]
-        sodium_df = _extract_lab_values(date_df, target_code=sodium_keywords, unit=sodium_units)
+        sodium_df = _extract_lab_values(date_df, keywords=sodium_keywords, units=sodium_units)
         if sodium_df.size:
             min_sodium_vals = (
                 sodium_df.groupby("simulation_number")["numeric"].min().values
@@ -292,7 +292,7 @@ def _render_all_graphs(df: pd.DataFrame):
         potassium_data = data["serum_potassium"]
         potassium_keywords = LAB_CODES["serum_potassium"]["keywords"]
         potassium_units = LAB_CODES["serum_potassium"]["units"]
-        potassium_df = _extract_lab_values(date_df, target_code=potassium_keywords, unit=potassium_units)
+        potassium_df = _extract_lab_values(date_df, keywords=potassium_keywords, units=potassium_units)
         if potassium_df.size:
             min_potassium_vals = (
                 potassium_df.groupby("simulation_number")["numeric"].min().values
@@ -328,10 +328,12 @@ def simulation_page_view(request: HttpRequest):
     """Renders page for simulations."""
     if request.method == "GET":
         sim_request_form = SimulationRequestForm(user=request.user)
+        sim_browse_form = SimulationBrowseForm()
         return render(
             request,
             "simulator/simulator_main.html",
-            {"sim_request_form": sim_request_form,},
+            {"sim_request_form": sim_request_form,
+             "sim_browse_form":sim_browse_form},
         )
     
 @login_required
@@ -340,31 +342,35 @@ def browse_simulation(request: HttpRequest):
     """AJAX endpoint to browse simulation by request ID and simulation number."""
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed."}, status=405)
+    
 
-    try:
-        request_id = int(request.POST.get("request_id"))
-        sim_no = int(request.POST.get("simulation_number"))
-    except (TypeError, ValueError):
-        return JsonResponse({"error": "Invalid request ID or simulation number."}, status=400)
-
-    sim_req = get_object_or_404(SimulationRequest, pk=request_id)
-
-    try:
-        field_names = SimulationResult.get_column_names()
-        df = pd.DataFrame.from_records(
-            SimulationResult.objects.filter(
-                request_id=sim_req.request_id,
-                simulation_number=sim_no
+    form = SimulationBrowseForm(request.POST)
+    if form.is_valid():
+        try:
+            request_id = int(form.cleaned_data["request_id"])
+            sim_no = form.cleaned_data["simulation_number"]
+            sim_req = get_object_or_404(SimulationRequest, id=request_id)
+            field_names = SimulationResult.get_column_names()
+            records = SimulationResult.objects.filter(
+                request=sim_req,
+                simulation_number=sim_no,
             ).values(*field_names)
+            df = pd.DataFrame.from_records(records
+            
         )
-        timeline_html = _render_timeline_html(df)
+            print(df)
+            timeline_html = _render_timeline_html(df)
+            return JsonResponse({"timeline_html": timeline_html}, status=200)
 
-        return JsonResponse({"timeline_html": timeline_html}, status=200)
-
-    except Exception as e:
+        except Exception as e:
+            return JsonResponse(
+                {"error": f"Simulation rendering failed: {str(e)}"}, status=500
+            )
+        
+    else:
         return JsonResponse(
-            {"error": f"Simulation rendering failed: {str(e)}"}, status=500
-        )
+                {"error": f"Simulation rendering failed", "form_erros":form.errors}, status=500,
+            )
 
 
 @login_required
@@ -477,13 +483,14 @@ def retrieve_simulation_results(request: HttpRequest):
             # Create a clean dataframe from response
             result_json = response.json()
             df = pd.DataFrame(result_json)
-            df["request_id"] = request_id
+            df["type"] = df["type"].astype(int)
+            df["request_id"] = int(request_id)
             df["simulation_number"], _ = pd.factorize(df[config.COL_PID])
             df["age"] = pd.to_timedelta(df["age"], unit="ms", errors="coerce")
             df["timestamp"] = df["age"] + dob
             field_names = SimulationResult.get_column_names()
             df = df[field_names]
-
+            
             # Save the DataFrame to the database
             engine = create_engine(config.CR_ENGINE_PARAM)
             df.to_sql(
@@ -492,29 +499,23 @@ def retrieve_simulation_results(request: HttpRequest):
                 if_exists="append",
                 index=False,
             )
+            
 
             # Render html
             # Select one simulation
-            unique_sim_no = df["simulation_number"].unique()
-            max_sim_no = int(unique_sim_no.max())
-            median_sim_no = int(np.median(unique_sim_no))
-            sampled_df = df.loc[df["simulation_number"] == median_sim_no, :]
+            selected_sim_no = int(df["simulation_number"].median()) # Select one with the median length
+            max_sim_no = int(df["simulation_number"].max())
+            sampled_df = df.loc[df["simulation_number"] == selected_sim_no, :]
             timeline_html = _render_timeline_html(sampled_df)
             # Prepare data for graph rendering (use all simulations)
             graph_data = _render_all_graphs(df)
-
-            # Render form for browsing simulation results
-            sim_browse_form = SimulationBrowseForm(
-                request.POST, request_id=request_id, max_sim_no=max_sim_no,selected_sim_no=median_sim_no
-            )
-
+            print(graph_data)
             return JsonResponse(
-                {
+                {   
                     "timeline_html": timeline_html,
-                    "selected_sim_no": median_sim_no,
+                    "selected_sim_no": selected_sim_no,
                     "max_sim_no": max_sim_no,
                     "graph_data": graph_data,
-                    "sim_browse_form":sim_browse_form
                 },
                 status=200,
             )

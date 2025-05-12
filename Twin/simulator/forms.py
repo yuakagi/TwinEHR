@@ -12,10 +12,10 @@ class SimulationRequestForm(forms.Form):
         label="Patient",
     )
     n_iter = forms.IntegerField(
-        label="Number of Iterations", min_value=1, max_value=256, required=True
+        label="Number of Iterations", min_value=1, max_value=256, required=True,initial=256
     )
     time_horizon = forms.IntegerField(
-        label="Time Horizon (days)", min_value=1, max_value=7, required=True
+        label="Time Horizon (days)", min_value=1, max_value=7, required=True, initial=7
     )
     horizon_start = forms.DateTimeField(
         label="Simulation starts from",
@@ -39,9 +39,8 @@ class SimulationRequestForm(forms.Form):
 
 
 class SimulationBrowseForm(forms.Form):
-    request_id = forms.ModelChoiceField(
-        queryset=SimulationRequest.objects.none(),
-        label="Simulation Request",
+    request_id = forms.IntegerField(
+        widget=forms.HiddenInput(),
         required=True
     )
     simulation_number = forms.IntegerField(
@@ -50,20 +49,3 @@ class SimulationBrowseForm(forms.Form):
         min_value=0,
         max_value=1000
     )
-
-    def __init__(self, *args, **kwargs):
-        request_id = kwargs.pop("request_id", None)
-        max_sim_no = kwargs.pop("max_sim_no", None)
-        selected_sim_no = kwargs.pop("selected_sim_no", None)
-        super().__init__(*args, **kwargs)
-
-        if request_id is not None:
-            queryset = SimulationRequest.objects.filter(pk=request_id)
-            self.fields["request_id"].queryset = queryset
-            self.fields["request_id"].initial = queryset.first()
-
-        if max_sim_no is not None:
-            self.fields["simulation_number"].max_value = max_sim_no
-
-        if selected_sim_no is not None:
-            self.fields["simulation_number"].initial = selected_sim_no
