@@ -21,8 +21,8 @@ sample_data/
 
 # Node Modules & Build Artifacts
 node_modules/
-static/dist/*
-!static/dist/.gitkeep
+static/assets/dist/*
+!static/assets/dist/.gitkeep
 
 # Ignore all migration files except __init__.py
 **/migrations/*.py

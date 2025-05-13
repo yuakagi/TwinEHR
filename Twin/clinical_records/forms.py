@@ -26,8 +26,8 @@ class PatientSearchForm(forms.Form):
     )
 
     # Date range
-    search_start = forms.DateField(label=_("Start date"), required=False)
-    search_end = forms.DateField(label=_("End date"), required=False)
+    search_start = forms.DateField(label=_("Search period start"), required=False)
+    search_end = forms.DateField(label=_("Period end"), required=False)
 
     # Clinical codes (Select2 via AJAX)
     dx_code = forms.CharField(

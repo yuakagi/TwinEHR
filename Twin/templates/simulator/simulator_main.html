@@ -766,7 +766,7 @@
     const dischargeXaxisCategories = dsc_data.labels;
 
     // Get height using jQuery
-    const dischargeHeight = parseInt($dischargeGraph.css('height'), 10);
+    const dischargeHeight = parseInt($dischargeGraph.css('height'), 200);
 
     const dischargeBorderColors = [borderGreen, borderYellow];
     const dischargeFillColors = [fillGreen, fillYellow];
@@ -799,7 +799,7 @@
     ];
 
     const antibioticXaxisCategories = abx_data.labels;
-    const antibioticHeight = parseInt($antibioticGraph.css('height'), 10);
+    const antibioticHeight = parseInt($antibioticGraph.css('height'), 200);
     const antibioticBorderColors = [borderYellow];
     const antibioticFillColors = [fillYellow];
     const antibioticUnit = " %";
@@ -833,7 +833,7 @@
     ];
 
     const sodiumXaxisCategories = sodium_data.labels;
-    const sodiumHeight = parseInt($sodiumGraph.css('height'), 10);
+    const sodiumHeight = parseInt($sodiumGraph.css('height'), 200);
     const sodiumBorderColors = [borderYellow, borderGreen, borderBlue];
     const sodiumFillColors = [fillYellow, fillGreen, fillBlue];
     const sodiumUnit = " mmol/L";
@@ -869,7 +869,7 @@
     ];
 
     const potassiumXaxisCategories = potassium_data.labels;
-    const potassiumHeight = parseInt($potassiumGraph.css('height'), 10);
+    const potassiumHeight = parseInt($potassiumGraph.css('height'), 200);
     const potassiumBorderColors = [borderYellow, borderGreen, borderBlue];
     const potassiumFillColors = [fillYellow, fillGreen, fillBlue];
     const potassiumUnit = " mmol/L";
@@ -902,7 +902,7 @@
   const xLabels = ["Jan 1", "Jan 2", "Jan 3", "Jan 4", "Jan 5", "Jan 6", "Jan 7"];
 
   // Helper to get height using jQuery
-  const getHeight = (selector) => parseInt($(selector).css('height'), 10);
+  const getHeight = (selector) => parseInt($(selector).css('height'), 200);
 
   // === Discharge Chart ===
   const dischargeSeries = [

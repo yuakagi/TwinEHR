@@ -83,8 +83,8 @@ class SimulationResult(models.Model):
     )
     timestamp = models.DateTimeField(null=False, blank=False, verbose_name=_("age"))
     code = models.CharField(max_length=100, blank=True, null=True)
-    text = models.CharField(max_length=100, blank=True, null=True)
-    result = models.CharField(max_length=100, blank=True, null=True)
+    text = models.CharField(max_length=300, blank=True, null=True)
+    result = models.CharField(max_length=300, blank=True, null=True)
 
     class Meta:
         # Set the table name explicitly

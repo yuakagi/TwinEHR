@@ -18,6 +18,10 @@ CR_DB = settings.DATABASES["clinical_records"]
 CR_ENGINE_PARAM = (
     f"postgresql+psycopg://{CR_DB['USER']}:{CR_DB['PASSWORD']}@{CR_DB['HOST']}:{CR_DB['PORT']}/{CR_DB['NAME']}"
 )
+PG_DB = settings.DATABASES["default"]
+PG_ENGINE_PARAM = (
+    f"postgresql+psycopg://{PG_DB['USER']}:{PG_DB['PASSWORD']}@{PG_DB['HOST']}:{PG_DB['PORT']}/{PG_DB['NAME']}"
+)
 
 # Simulation API settings
 sim_host = os.environ.get("SIM_API_HOST")

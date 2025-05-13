@@ -1,5 +1,6 @@
 import requests
 import logging
+import re
 from datetime import datetime
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -23,13 +24,22 @@ logger = logging.getLogger(__name__)
 # region Simulation Const
 # HTML template for a timeline item
 TL_TEMPLATE = """
-<li style="--accent-color: {color}">
-  <div class="time d-flex align-items-center gap-2">
-    <i class="{icon}" style="font-size: 1.5rem;"></i>
-    <span>{time}</span>
+<li class="list-unstyled mb-4">
+
+  <!-- sticky time bar -->
+  <div class="d-inline-flex align-items-center gap-2 sticky-top
+              px-3 py-1 rounded-3 shadow-sm"
+       style="background-color:{color}; top:0;">
+    <i class="{icon} text-white" style="font-size:1.25rem;"></i>
+    <span class="text-white small fw-semibold">{time}</span>
   </div>
-  <div class="title">{title}</div>
-  <div class="descr">{descr}</div>
+
+  <!-- content block -->
+  <div class="ms-4 mt-2">
+    <h6 class="mb-1">{title}</h6>
+    <p class="mb-0 text-muted">{descr}</p>
+  </div>
+
 </li>
 """
 
@@ -72,7 +82,9 @@ DISCHARGE_RESULT_DICT = {
 BROAD_ABX = [
             "Vancomycin",
             "Linezolid",
-            "Daptomycin"
+            "Daptomycin",
+            "heparin",
+            "electrolytes"
         ]
 
 LAB_CODES = {
@@ -101,28 +113,43 @@ def _extract_numeric_from_text(col: pd.Series) -> pd.Series:
     return num_col
 
 
-def _extract_lab_values(df: pd.DataFrame, keywords: list[str], units:list[str]) -> pd.DataFrame:
-    """Extract target laboratory results from a table.
-    Args:
-        df (pd.DataFrame): Input table.
-        keywords (list[str]): Keywords to search lab tests. (Case INsensitive)
-            e.g., ["serum", "sodium"]
-        unit (list[str]): List of valid units. (Case sensitive)
-    Returns:
-        df_labs (pd.DataFrame): Table with target laboratory test results only.
-    """
-    for kw in keywords:
-        kw_mask = df["text"].str.contains(kw, case=False)
-        df = df.loc[kw_mask]
-    for un in units:
-        un_mask = df["result"].str.endswith(un)
-        df = df.loc[un_mask]
-    df_labs = df.loc[:,["simulation_number", "timestamp", "result"]].copy()
-    df_labs["numeric"] = _extract_numeric_from_text(df_labs["result"])
-    df_labs = df_labs.loc[df_labs["numeric"].notna()]
-    df_labs = df_labs[["simulation_number", "timestamp", "numeric"]]
+def _extract_numeric_from_text(col: pd.Series) -> pd.Series:
+    """Extract numeric values from text (e.g., '145.2 mEq/L' → 145.2)"""
+    num_regex = r"^([+-]?\d*\.?\d+(?:[eE][-+]?\d+)?)"
+    num_col = col.str.extract(num_regex, expand=False)
+    num_col = pd.to_numeric(num_col, errors="coerce")
+    return num_col
 
-    return df_labs
+
+def _extract_lab_values(df: pd.DataFrame, keywords: list[str], units: list[str]) -> pd.DataFrame:
+    """
+    Extracts lab values from simulation result table using keywords and units.
+
+    Args:
+        df (pd.DataFrame): Input table with 'text' and 'result' columns.
+        keywords (list[str]): Substrings to match lab test names (case-insensitive AND).
+        units (list[str]): Valid units (e.g., 'mmol/L') matched case-insensitively at the end of result.
+
+    Returns:
+        pd.DataFrame: Filtered lab values with ['simulation_number', 'timestamp', 'numeric'].
+    """
+    # Filter by text (all keywords must be present)
+    kw_mask = df["text"].str.contains(keywords[0], case=False, na=False)
+    for kw in keywords[1:]:
+        kw_mask &= df["text"].str.contains(kw, case=False, na=False)
+    df = df[kw_mask]
+
+    # Filter by result unit (case-insensitive)
+    unit_mask = df["result"].str.lower().str.strip().str.endswith(
+        tuple(u.lower() for u in units)
+    )
+    df = df[unit_mask]
+
+    # Extract numeric values
+    df_labs = df.loc[:, ["simulation_number", "timestamp", "result"]].copy()
+    df_labs["numeric"] = _extract_numeric_from_text(df_labs["result"])
+    df_labs = df_labs[df_labs["numeric"].notna()]
+    return df_labs[["simulation_number", "timestamp", "numeric"]]
 
 
 
@@ -252,17 +279,17 @@ def _render_all_graphs(df: pd.DataFrame):
 
         # Antibiotics
         abx_data = data["broad_antibiotics"]
-        broad_abx_mask = pd.Series(
-            np.full(len(cum_date_df), False), index=cum_date_df.index
-        )
+        broad_abx_mask = pd.Series(False, index=cum_date_df.index)
         for c in BROAD_ABX:
-            broad_abx_mask = broad_abx_mask | cum_date_df["text"].str.contains(c, case=False)
-        broad_abx_mask = broad_abx_mask & cum_date_df["type"].isin([4, 5])
+            pattern = rf"\b{re.escape(c)}\b"
+            broad_abx_mask |= cum_date_df["text"].str.contains(pattern, case=False, na=False, regex=True)
+        broad_abx_mask &= cum_date_df["type"].isin([4, 5])
         abx_df = cum_date_df.loc[broad_abx_mask]
-        n_borad_abx = abx_df["simulation_number"].nunique()
-        broad_abx_rate = round((n_borad_abx / n_sim) * 100, 1)
+        n_broad_abx = abx_df["simulation_number"].nunique()
+        broad_abx_rate = round((n_broad_abx / n_sim) * 100, 1)
         abx_data["values"]["all"].append(broad_abx_rate)
         abx_data["labels"].append(date_str)
+
 
         # Events by date
         # Sodium
@@ -349,7 +376,7 @@ def browse_simulation(request: HttpRequest):
         try:
             request_id = int(form.cleaned_data["request_id"])
             sim_no = form.cleaned_data["simulation_number"]
-            sim_req = get_object_or_404(SimulationRequest, id=request_id)
+            sim_req = get_object_or_404(SimulationRequest, request_id=int(request_id))
             field_names = SimulationResult.get_column_names()
             records = SimulationResult.objects.filter(
                 request=sim_req,
@@ -358,7 +385,6 @@ def browse_simulation(request: HttpRequest):
             df = pd.DataFrame.from_records(records
             
         )
-            print(df)
             timeline_html = _render_timeline_html(df)
             return JsonResponse({"timeline_html": timeline_html}, status=200)
 
@@ -492,10 +518,11 @@ def retrieve_simulation_results(request: HttpRequest):
             df = df[field_names]
             
             # Save the DataFrame to the database
-            engine = create_engine(config.CR_ENGINE_PARAM)
+            engine = create_engine(config.PG_ENGINE_PARAM)
             df.to_sql(
                 "simulation_results",
                 con=engine,
+                schema="public",
                 if_exists="append",
                 index=False,
             )
@@ -509,7 +536,6 @@ def retrieve_simulation_results(request: HttpRequest):
             timeline_html = _render_timeline_html(sampled_df)
             # Prepare data for graph rendering (use all simulations)
             graph_data = _render_all_graphs(df)
-            print(graph_data)
             return JsonResponse(
                 {   
                     "timeline_html": timeline_html,

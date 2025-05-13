@@ -92,7 +92,7 @@
                 {%endif%}
               </td>
               <td class="fw-bold">{{ r.patient.first_name }} {{ r.patient.last_name }}</td>
-              <td>{{ r.patient.get_gender_display }}</td>
+              <td>{{ r.patient.sex }}</td>
 			  <td>{{ r.patient.date_of_birth|date:'Y-m-d' }}</td>
               <td title="{{ r.comment }}">
                 {% if r.comment|length > 30 %}
