@@ -65,7 +65,7 @@ RUN npm install \
 RUN npx webpack --mode ${BUILD_MODE}  --config webpack.config.js
 
 # Prune dev dependencies for smaller image if in production mode
-RUN /bin/sh -c '[ "$BUILD_MODE" = "production" ] && npm prune --production || echo "Skipping prune"'
+RUN if [ "$BUILD_MODE" = "production" ]; then npm prune --production; else echo "Skipping prune"; fi
 
 # Clean up caches
 RUN rm -rf /root/.npm /root/.cache

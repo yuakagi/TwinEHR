@@ -115,7 +115,8 @@ function applyFormValidation(form_errors) {
             feedback.text(form_errors[fieldName][0]); // Show first error message
         } else {
             // Dynamically insert feedback if it does not exist
-            field.after(`<div id="${field.attr("id")}-feedback" class="invalid-feedback">${form[fieldName][0]}</div>`);
+            field.after(`<div id="${field.attr("id")}-feedback" class="invalid-feedback">${form_errors[fieldName][0]}</div>`);
+
         }
     });
 }

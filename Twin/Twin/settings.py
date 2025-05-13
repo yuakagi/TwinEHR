@@ -154,7 +154,6 @@ AXES_RESET_ON_SUCCESS = True  # Reset count after successful login
 # Internationalization
 # ====================
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-# timezoneの設定。[重要！]ウェブサイトはこのtimezoneに従って動くが、ブラウザーはユーザーのlocal timezoneを使う。各種機能で、この差が問題にならないように注意する必要がある。
 TIME_ZONE = "Asia/Tokyo"
 LANGUAGE_CODE = "en-us"
 USE_I18N = True
