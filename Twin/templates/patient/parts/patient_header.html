@@ -69,8 +69,8 @@
             href="#"
             class="d-flex align-items-center text-secondary text-decoration-none me-5 mb-2"
           >
-            <i class="bi bi-person-circle me-1"></i> Patient ID: {{
-            patient.patient_id }}
+            <!-- prettier-ignore -->
+            <i class="bi bi-person-circle me-1"></i> Patient ID: {{ patient.patient_id }}
           </a>
           <a
             href="#"
@@ -202,10 +202,9 @@
           id="modal_form"
           action="{% url 'account_edit_user_patient_relation' %}"
         >
-          {% csrf_token %} {% include 'components/form_fields/field_auto.html'
-          with field=relation_edit_form.color %} {% include
-          'components/form_fields/field_auto.html' with
-          field=relation_edit_form.comment %}
+          {% csrf_token %} 
+          <!-- prettier-ignore -->
+          {% include 'components/form_fields/field_auto.html' with field=relation_edit_form.color %} {% include 'components/form_fields/field_auto.html' with field=relation_edit_form.comment %}
           <div class="text-end">
             <button id="rel_form_submit" type="submit" class="btn btn-primary">
               <span id="rel_form_progress" class="visually-hidden">
