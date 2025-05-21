@@ -348,7 +348,12 @@
   function submitSimRequest(simReqForm, simReqData, onSuccess) {
     Swal.fire({
         title: 'Running simulations...',
-        html: 'Status: request being submitted',
+        html: `
+          <div>
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Status: request being submitted</p>
+          </div>
+        `,
         allowOutsideClick: false,
         allowEscapeKey: true,
         showConfirmButton: false,   // hides the “OK” button
@@ -374,7 +379,12 @@
         const requestID = data.request_id;
         const patientID = data.patient_id;
         Swal.update({
-          html: 'Status: request accepted'
+          html: `
+          <div>
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Status: request accepted</p>
+          </div>
+        `,
         });
         // Callback with results
         onSuccess({ simulationID, requestID, patientID });
@@ -424,7 +434,7 @@
   }
 
   // Function for polling 
-  function startPolling(simulationID, requestID, patientID, pollingInterval=3000 ,pollingTimeout = 120000) {
+  function startPolling(simulationID, requestID, patientID, pollingInterval=3000 ,pollingTimeout = 600000) {
     // Set var/const at the begining of the loop
     const pollingStartTime = Date.now();
     var simProgress = null;
@@ -452,7 +462,12 @@
             if (simProgress !== data.progress) {
               simProgress = data.progress;
               Swal.update({
-                html: `Status: ${simProgress}`
+                html: `
+                      <div>
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Status: ${simProgress}</p>
+                      </div>
+                    `,
               });
             }
 
@@ -895,81 +910,7 @@
 
 
 
-  /*
-  Render example charts
-  */
-	// Common x-axis labels (e.g., simulated timeline: Jan 1 to Jan 7)
-  const xLabels = ["Jan 1", "Jan 2", "Jan 3", "Jan 4", "Jan 5", "Jan 6", "Jan 7"];
 
-  // Helper to get height using jQuery
-  const getHeight = (selector) => parseInt($(selector).css('height'), 200);
-
-  // === Discharge Chart ===
-  const dischargeSeries = [
-    { name: "All", data: [0, 10, 20, 30, 40, 55, 65] },
-    { name: "Death", data: [0, 0, 5, 10, 30, 40, 40] }
-  ];
-  const dischargeOptions = createChartOptions({
-    series: dischargeSeries,
-    height: getHeight('#discharge_chart'),
-    xaxisCategories: xLabels,
-    borderColors: [borderGreen, borderYellow],
-    fillColors: [fillGreen, fillYellow],
-    unit: " %"
-  });
-  dischargeChart = new ApexCharts(document.getElementById('discharge_chart'), dischargeOptions);
-  dischargeChart.render();
-
-  // === Antibiotic Chart ===
-  const antibioticSeries = [
-    { name: "Antibiotic Use", data: [0, 0, 5, 10, 22, 28, 32] }
-  ];
-  const antibioticOptions = createChartOptions({
-    series: antibioticSeries,
-    height: getHeight('#antibiotic_chart'),
-    xaxisCategories: xLabels,
-    borderColors: [borderYellow],
-    fillColors: [fillYellow],
-    unit: " %"
-  });
-  antibioticChart = new ApexCharts(document.getElementById('antibiotic_chart'), antibioticOptions);
-  antibioticChart.render();
-
-  // === Sodium Chart ===
-  const sodiumSeries = [
-    { name: "High", data: [143, 142, 142, 141, 140, 140, 140] },
-    { name: "Median", data: [142, 141, 141, 139, 138, 138, 137] },
-    { name: "Low", data: [140, 140, 139, 137, 136, 135, 133] }
-  ];
-  const sodiumOptions = createChartOptions({
-    series: sodiumSeries,
-    height: getHeight('#sodium_chart'),
-    xaxisCategories: xLabels,
-    borderColors: [borderYellow, borderGreen, borderBlue],
-    fillColors: [fillYellow, fillGreen, fillBlue],
-    unit: " mmol/L",
-    opacity: 0 // disable fill
-  });
-  sodiumChart = new ApexCharts(document.getElementById('sodium_chart'), sodiumOptions);
-  sodiumChart.render();
-
-  // === Potassium Chart ===
-  const potassiumSeries = [
-    { name: "High", data: [1500, 1450, 1200, 1000, 800, 800, 760] },
-    { name: "Median", data: [1300, 1200, 800, 700, 500, 500, 480] },
-    { name: "Low", data: [1200, 1100, 600, 450, 400, 350, 300] }
-  ];
-  const potassiumOptions = createChartOptions({
-    series: potassiumSeries,
-    height: getHeight('#potassium_chart'),
-    xaxisCategories: xLabels,
-    borderColors: [borderYellow, borderGreen, borderBlue],
-    fillColors: [fillYellow, fillGreen, fillBlue],
-    unit: " /μL",
-    opacity: 0
-  });
-  potassiumChart = new ApexCharts(document.getElementById('potassium_chart'), potassiumOptions);
-  potassiumChart.render();
 
 
 </script>

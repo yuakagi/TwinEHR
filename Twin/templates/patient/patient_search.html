@@ -149,6 +149,29 @@
     });
 }
 
+// Function to initialize DataTable
+function initTable(tableId) {
+	// Ensure the ID starts with "#" before using jQuery selector
+	let tbSelector = tableId.startsWith("#") ? tableId : `#${tableId}`;
+	let tableElement = $(tbSelector);
+
+	// Check if DataTable is already initialized and destroy it
+	if ($.fn.DataTable.isDataTable(tableElement)) {
+		tableElement.DataTable().clear().destroy();
+	}
+
+	// Initialize DataTable
+	let table = tableElement.DataTable({
+		responsive: true,
+		paging: true,
+		searching: true,
+		lengthMenu: [25, 50, 100],
+		order: [[0, "desc"]] // Sort by first column in descending order
+	});
+
+	return table;
+}
+
 $(document).ready(function () {
     // AJAX autocompletes
     // Diagnosis code
@@ -157,6 +180,8 @@ $(document).ready(function () {
     codeAutoCompleteSelect2('.select2-med', "med");
     // Lab code
     codeAutoCompleteSelect2('.select2-lab', "lab");
+    // Initialize data table
+    initTable('#recordTable')
 });
 
 </script>
