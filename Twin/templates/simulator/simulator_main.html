@@ -83,7 +83,7 @@
             <span class="position-absolute start-0 bottom-0 w-100 bg-success" style="height: 4px; border-radius: 2px;"></span>
         </span>
         <!-- Subtitle -->
-        <div class="fs-6 text-muted mt-1">Examine simulation results one by one</div>
+        <div class="fs-6 text-muted mt-1"></div>
     </h3>
     <!--end::Heading-->
 </div>
@@ -98,12 +98,7 @@
           <div class="card-title d-flex flex-column w-100" id="sim_browse_header_default">
             <h3 class="fw-bold mb-1">Examine your simulation results one by one.</h3>
             <div class="fs-6 fw-semibold text-muted">Timelines are displayed below once they are ready.</div>
-          </div>
-          <div class="card-title d-flex flex-column visually-hidden w-100" id="sim_browse_header">
-            <h3 class="fw-bold mb-1">Select a result from the box on the right</h3>
-            <div class="fs-6 fw-semibold text-muted">
-              Simulation numbers are sorted by simulation length
-            </div>
+            <div class="fs-6 fw-semibold text-muted">Simulation numbers are sorted by timeline length.</div>
           </div>
   
           <!--begin::Card toolbar-->
@@ -147,20 +142,20 @@
 <!-- begin::Patient Forecast -->
 <!-- begin::Toolbar Patient Forecast -->
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-  <!-- Heading -->
-  <h3 class="fw-bold my-2">
-    <!-- Underline -->
-    <span class="d-inline-block position-relative ms-2">
-      <!-- Label -->
-      <span class="d-inline-block mb-2 fs-2 fw-bold">
-        Patient Forecast
-      </span>
-      <!-- Line -->
-      <span class="position-absolute start-0 bottom-0 w-100 bg-success" style="height: 4px; border-radius: 2px;"></span>
+  <!--begin::Heading-->
+  <h3 class="fw-bold mb-0">
+    <span class="d-inline-block position-relative">
+        <!-- Title -->
+        <span class="d-block fs-3">Patient Forecast</span>
+
+        <!-- Underline -->
+        <span class="position-absolute start-0 bottom-0 w-100 bg-success" style="height: 4px; border-radius: 2px;"></span>
     </span>
     <!-- Subtitle -->
-    <span class="fs-6 text-muted fw-semibold ms-1">By Monte Carlo Method</span>
+    <div class="fs-6 text-muted mt-1">Predicted event rates and laboratory results are summarized daily.</div>
+    <div class="fs-6 text-muted mt-1">Forecasts are generated using the Monte Carlo method.</div>
   </h3>
+  <!--end::Heading-->
 </div>
 <!-- end::Toolbar Patient Forecast -->
 
@@ -341,6 +336,7 @@
 	// Function to refresh timeline
 	function refreshTimeline(new_tl) {
 		renderedTimeline.html(new_tl);
+    renderedTimeline.scrollTop(0); // Scroll to top
 	}
   
 
@@ -352,14 +348,28 @@
           <div>
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">Status: request being submitted</p>
+            <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
           </div>
         `,
+        
         allowOutsideClick: false,
         allowEscapeKey: true,
         showConfirmButton: false,   // hides the “OK” button
         showCancelButton: false,    // hides any cancel button
         didOpen: () => {
           Swal.showLoading();  // Shows spinner
+          // Start timer
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+              const elapsed = Math.floor((Date.now() - startTime) / 1000);
+              const timerEl = document.getElementById('swal-timer');
+              if (timerEl) {
+                timerEl.textContent = elapsed;
+              }
+            }, 1000);
+          },
+          willClose: () => {
+            clearInterval(timerInterval);  // Stop the timer when Swal closes
         }
       });
     $.ajax({
@@ -379,10 +389,12 @@
         const requestID = data.request_id;
         const patientID = data.patient_id;
         Swal.update({
-          html: `
+          html: 
+          `
           <div>
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">Status: request accepted</p>
+            <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
           </div>
         `,
         });
@@ -463,9 +475,11 @@
               simProgress = data.progress;
               Swal.update({
                 html: `
+                
                       <div>
                         <div class="spinner-border text-primary" role="status"></div>
                         <p class="mt-2">Status: ${simProgress}</p>
+                        <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
                       </div>
                     `,
               });
@@ -781,7 +795,7 @@
     const dischargeXaxisCategories = dsc_data.labels;
 
     // Get height using jQuery
-    const dischargeHeight = parseInt($dischargeGraph.css('height'), 200);
+    const dischargeHeight = parseInt($dischargeGraph.css('height'), 10);
 
     const dischargeBorderColors = [borderGreen, borderYellow];
     const dischargeFillColors = [fillGreen, fillYellow];
@@ -814,7 +828,7 @@
     ];
 
     const antibioticXaxisCategories = abx_data.labels;
-    const antibioticHeight = parseInt($antibioticGraph.css('height'), 200);
+    const antibioticHeight = parseInt($antibioticGraph.css('height'), 10);
     const antibioticBorderColors = [borderYellow];
     const antibioticFillColors = [fillYellow];
     const antibioticUnit = " %";
@@ -848,7 +862,7 @@
     ];
 
     const sodiumXaxisCategories = sodium_data.labels;
-    const sodiumHeight = parseInt($sodiumGraph.css('height'), 200);
+    const sodiumHeight = parseInt($sodiumGraph.css('height'), 10);
     const sodiumBorderColors = [borderYellow, borderGreen, borderBlue];
     const sodiumFillColors = [fillYellow, fillGreen, fillBlue];
     const sodiumUnit = " mmol/L";
@@ -884,7 +898,7 @@
     ];
 
     const potassiumXaxisCategories = potassium_data.labels;
-    const potassiumHeight = parseInt($potassiumGraph.css('height'), 200);
+    const potassiumHeight = parseInt($potassiumGraph.css('height'), 10);
     const potassiumBorderColors = [borderYellow, borderGreen, borderBlue];
     const potassiumFillColors = [fillYellow, fillGreen, fillBlue];
     const potassiumUnit = " mmol/L";

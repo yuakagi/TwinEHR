@@ -144,7 +144,7 @@ class RelationEditForm(forms.ModelForm):
         label=_("Comment"),
         required=False,
         max_length=UserPatientRelation._meta.get_field("comment").max_length,
-        widget=forms.Textarea(attrs={"rows": 5}),
+        widget=forms.Textarea(attrs={"rows": 10}),
     )
 
     class Meta:

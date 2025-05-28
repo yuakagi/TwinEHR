@@ -565,7 +565,8 @@ def retrieve_simulation_results(request: HttpRequest):
     # Internal errors
     except Exception as e:
         # Handle error from Flask API
-        logger.error(f"Internal API error: {str(e)}")
+        print(response)
+        logger.exception(f"Internal API error: {str(e)}")
         return JsonResponse(
             {"status": "error", "messages": [], "errors": [str(e)]},
             status=500,
