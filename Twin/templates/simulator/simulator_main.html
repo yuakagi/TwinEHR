@@ -1,0 +1,931 @@
+<!--
+  User Home Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/30
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block style %}
+<link href="{% static 'assets/dist/css/timeline.css' %}" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block content %}
+<!-- begin::Simulation request form -->
+<div class="container mt-4 mb-4">
+    <!-- begin::Card head -->
+    <div class="card border-0 mb-6 mb-xl-9 text-light rounded-3 shadow-sm"
+     style="background: linear-gradient(to bottom, #044f91 0%, #9ccbec 100%);"
+     data-bs-theme="light">
+
+
+        <!-- begin::Card header -->
+        <div class="card-header mt-6">
+            <div class="card-title flex-column">
+                <h1 class="fw-bold mb-1 text-light">Simulation Lab</h1>
+                <div class="fs-6 fw-semibold text-light">Select parameters, and run.</div>
+            </div>
+        </div>
+        <!-- end::Card header -->
+
+        <!--begin::Card body-->
+        <div class="card-body p-9">
+            <!-- begin::Form -->
+            <form id="simRequestForm" class="needs-validation" method="POST" action="{% url 'simulator_submit_request' %}" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                    {% include 'components/form_fields/field_auto.html' with field=sim_request_form.patient %}
+                    </div>
+                    <div class="col-sm-4">
+                    {% include 'components/form_fields/field_auto.html' with field=sim_request_form.horizon_start %}
+                    </div>
+                    <div class="col-sm-2">
+                    {% include 'components/form_fields/field_auto.html' with field=sim_request_form.time_horizon %}
+                    </div>
+                    <div class="col-sm-2">
+                    {% include 'components/form_fields/field_auto.html' with field=sim_request_form.n_iter %}
+                    </div>
+                </div>
+                <hr class="my-4">
+                <!-- Simulation submit button -->
+                <button class="btn btn-light hover-scale" type="submit"
+                    id="simRunButton">
+                    <i class="bi bi-gpu-card"></i>
+                    <span id="simRunButtonText">Run</span>
+                </button>
+            </form>
+            <!-- end::Form -->
+
+            <div class="text-end text-light">
+                <i class="bi bi-clock-history"></i>
+                Simulation may take some minutes.
+            </div>
+        </div>
+        <!--end::Card body-->
+    </div>
+</div>
+<!-- end::Simulation request form -->
+
+
+<!-- begin::Simulation browser -->
+<!--begin::Toolbar Simulation Browser-->
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+    <!--begin::Heading-->
+    <h3 class="fw-bold mb-0">
+        <span class="d-inline-block position-relative">
+            <!-- Title -->
+            <span class="d-block fs-3">Simulation Browser</span>
+
+            <!-- Underline -->
+            <span class="position-absolute start-0 bottom-0 w-100 bg-success" style="height: 4px; border-radius: 2px;"></span>
+        </span>
+        <!-- Subtitle -->
+        <div class="fs-6 text-muted mt-1"></div>
+    </h3>
+    <!--end::Heading-->
+</div>
+<!--end::Toolbar Simulation Browser-->
+
+<!--begin::Row-->
+<div class="row gx-3 gx-xl-4 mb-4">
+    <div class="col-lg-12">
+      <div class="card h-100 border-0">
+        <!--begin::Card header-->
+        <div class="card-header pt-4 pb-2">
+          <div class="card-title d-flex flex-column w-100" id="sim_browse_header_default">
+            <h3 class="fw-bold mb-1">Examine your simulation results one by one.</h3>
+            <div class="fs-6 fw-semibold text-muted">Timelines are displayed below once they are ready.</div>
+            <div class="fs-6 fw-semibold text-muted">Simulation numbers are sorted by timeline length.</div>
+          </div>
+  
+          <!--begin::Card toolbar-->
+          <div id="browse-form-wrapper" class="card-toolbar mt-3 visually-hidden">
+            <form id="sim-browse-form" class="needs-validation" method="POST" action="{% url 'simulator_browse' %}" novalidate>
+              {% csrf_token %}
+              <div class="input-group align-items-end">
+                {{ sim_browse_form.request_id }}
+                {% include 'components/form_fields/field_auto.html' with field=sim_browse_form.simulation_number %}
+                <div class="mb-3 align-self-end">
+                  <button id="browse-button" class="btn btn-primary " type="submit" disabled>Submit</button>
+                </div>
+              </div>
+
+           </form>
+          </div>
+          <!--end::Card toolbar-->
+
+        </div>
+        <!--end::Card header-->
+  
+        <!--begin::Card body-->
+        <div class="card-body pt-3">
+          <!--begin::Timeline-->
+          <div class="timeline-wrapper">
+            <div id="renderedTimeline" class="overflow-auto px-3" style="max-height: 500px; max-width: 700px;">
+
+              <!-- Timelines are rendered here -->
+            </div>
+          </div>
+          <!--end::Timeline-->
+        </div>
+        <!--end::Card body-->
+      </div>
+    </div>
+</div>
+<!--end::Row-->
+<!-- end::Simulation browser -->
+
+
+<!-- begin::Patient Forecast -->
+<!-- begin::Toolbar Patient Forecast -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <!--begin::Heading-->
+  <h3 class="fw-bold mb-0">
+    <span class="d-inline-block position-relative">
+        <!-- Title -->
+        <span class="d-block fs-3">Patient Forecast</span>
+
+        <!-- Underline -->
+        <span class="position-absolute start-0 bottom-0 w-100 bg-success" style="height: 4px; border-radius: 2px;"></span>
+    </span>
+    <!-- Subtitle -->
+    <div class="fs-6 text-muted mt-1">Predicted event rates and laboratory results are summarized daily.</div>
+    <div class="fs-6 text-muted mt-1">Forecasts are generated using the Monte Carlo method.</div>
+  </h3>
+  <!--end::Heading-->
+</div>
+<!-- end::Toolbar Patient Forecast -->
+
+<!-- begin::Patient Forecast Charts -->
+<!-- Row -->
+<div class="row gx-3 gx-xl-4">
+
+  <!-- Discharges -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header mt-3">
+        <div class="card-title flex-column">
+          <h3 class="fw-bold mb-1">Probability of Discharge</h3>
+          <div class="fs-6 d-flex text-muted fw-semibold">
+            <div class="d-flex align-items-center me-4">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-success" style="width:10px; height:10px;"></span>
+              </span>
+              All Discharges
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-warning" style="width:10px; height:10px;"></span>
+              </span>
+              Death
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body pt-5 pb-0 px-4">
+        <div id="discharge_chart" style="height: 200px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Broad-Spectrum Antibiotics -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header mt-3">
+        <div class="card-title flex-column">
+          <h3 class="fw-bold mb-1">Anti-MRSA Antibiotic Use</h3>
+          <div class="fs-6 d-flex text-muted fw-semibold">
+            <div class="d-flex align-items-center">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-warning" style="width:10px; height:10px;"></span>
+              </span>
+              Probability of Antibiotic Use
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body pt-5 pb-0 px-4">
+        <div id="antibiotic_chart" style="height: 200px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Serum Sodium -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header mt-3">
+        <div class="card-title flex-column">
+          <h3 class="fw-bold mb-1">
+            Serum Sodium
+            <span class="ms-1" data-bs-toggle="tooltip" title="Summary of serum sodium values in all simulation results. If there are few or no measurements in the simulation, nothing may appear here.">
+              <i class="bi bi-question-circle text-muted fs-5"></i>
+            </span>
+          </h3>
+          <div class="fs-6 d-flex text-muted fw-semibold">
+            <div class="d-flex align-items-center me-4">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-warning" style="width:10px; height:10px;"></span>
+              </span>
+              90 percentile
+            </div>
+            <div class="d-flex align-items-center me-4">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-success" style="width:10px; height:10px;"></span>
+              </span>
+              Median
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-primary" style="width:10px; height:10px;"></span>
+              </span>
+              10 percentile
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body pt-5 pb-0 px-4">
+        <div id="sodium_chart" style="height: 200px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Potassium -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header mt-3">
+        <div class="card-title flex-column">
+          <h3 class="fw-bold mb-1">Serum Potassium</h3>
+          <div class="fs-6 d-flex text-muted fw-semibold">
+            <div class="d-flex align-items-center me-4">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-warning" style="width:10px; height:10px;"></span>
+              </span>
+              90 percentile
+            </div>
+            <div class="d-flex align-items-center me-4">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-success" style="width:10px; height:10px;"></span>
+              </span>
+              Median
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="d-flex align-items-center me-2">
+                <span class="rounded-circle bg-primary" style="width:10px; height:10px;"></span>
+              </span>
+              10 percentile
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body pt-5 pb-0 px-4">
+        <div id="potassium_chart" style="height: 200px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- end::Patient Forecast Charts -->
+
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script src="{% static 'assets/dist/js/csrf_token.js' %}"></script>
+<script src="{% static 'assets/dist/js/ajax_form.js' %}"></script>
+<script>
+  // Initialize global variables
+	var dischargeChart,
+		antibioticChart,
+		sodiumChart,
+		potassiumChart;
+  // Colors
+  function getCssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  const borderGreen = getCssVar("--bs-success");
+  const fillGreen = getCssVar("--bs-success-bg-subtle");
+  const borderYellow = getCssVar("--bs-warning");
+  const fillYellow = getCssVar("--bs-warning-bg-subtle");
+  const borderRed = getCssVar("--bs-danger");
+  const fillRed = getCssVar("--bs-danger-bg-subtle");
+  const borderBlue = getCssVar("--bs-primary");
+  const fillBlue = getCssVar("--bs-primary-bg-subtle");
+  const borderGray = getCssVar("--bs-gray-200");
+  const textGray = getCssVar("--bs-gray-500");
+	// Simulation related const
+	const simRunBtn = $('#simRunButton'),
+		renderedTimeline = $('#renderedTimeline'),
+    reqNoInput =$('input[name="request_id"]'),
+    simNoInput = $('input[name="simulation_number"]'),
+    simBrowseBtn = $('#browse-button'),
+    simBrowseWrap = $('#browse-form-wrapper');
+	// Get csrf token
+  const csrftoken = getCookie('csrftoken');
+
+	// datetime picker
+	const now = Date.now();
+	flatpickr("#horizonStartInput", {
+		enableTime: true,
+		dateFormat: "Y-m-d H:i",
+		defaultDate: now,
+	});
+
+	// Function to refresh timeline
+	function refreshTimeline(new_tl) {
+		renderedTimeline.html(new_tl);
+    renderedTimeline.scrollTop(0); // Scroll to top
+	}
+  
+
+  // Function for submitting simulation request
+  function submitSimRequest(simReqForm, simReqData, onSuccess) {
+    Swal.fire({
+        title: 'Running simulations...',
+        html: `
+          <div>
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Status: request being submitted</p>
+            <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
+          </div>
+        `,
+        
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        showConfirmButton: false,   // hides the “OK” button
+        showCancelButton: false,    // hides any cancel button
+        didOpen: () => {
+          Swal.showLoading();  // Shows spinner
+          // Start timer
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+              const elapsed = Math.floor((Date.now() - startTime) / 1000);
+              const timerEl = document.getElementById('swal-timer');
+              if (timerEl) {
+                timerEl.textContent = elapsed;
+              }
+            }, 1000);
+          },
+          willClose: () => {
+            clearInterval(timerInterval);  // Stop the timer when Swal closes
+        }
+      });
+    $.ajax({
+      type: 'POST',
+      url: simReqForm.attr('action'),
+      headers: {
+        'X-Request-Type': 'run',
+        'X-CSRFToken': csrftoken
+      },
+      data: simReqData,
+      dataType: "json",
+      timeout: 10000, // timeout for request submission
+
+      // Request success
+      success: function (data) {
+        const simulationID = data.simulation_id;
+        const requestID = data.request_id;
+        const patientID = data.patient_id;
+        Swal.update({
+          html: 
+          `
+          <div>
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Status: request accepted</p>
+            <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
+          </div>
+        `,
+        });
+        // Callback with results
+        onSuccess({ simulationID, requestID, patientID });
+        // Reset form validation
+        resetFormValidation(simReqForm);
+      },
+      
+      // Request failed
+      error: function (xhr) {
+        let errorMessage = 'Something went wrong while contacting the server.<br>Please try again later.';
+
+        if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.form_errors) {
+          // Form validation error
+          const formErrors = xhr.responseJSON.form_errors;
+
+          // Apply validation highlights to form fields
+          applyFormValidation(formErrors);
+
+          // Compose error message for display
+          errorMessage = '<strong>Form validation failed:</strong><br>';
+          for (const field in formErrors) {
+            if (formErrors.hasOwnProperty(field)) {
+              errorMessage
+            }
+          }
+
+        } else {
+          // Other error (e.g., server error, network error, timeout)
+          console.error("Request failed:", xhr.status, xhr.responseText);
+        }
+
+        // Always show a modal alert after processing
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Request Failed',
+          html: errorMessage,
+          showCloseButton: true,
+          confirmButtonText: 'OK',
+        });
+      },
+
+      complete: function () {
+        simRunBtn.prop("disabled", false);
+      }
+    });
+  }
+
+  // Function for polling 
+  function startPolling(simulationID, requestID, patientID, pollingInterval=3000 ,pollingTimeout = 600000) {
+    // Set var/const at the begining of the loop
+    const pollingStartTime = Date.now();
+    var simProgress = null;
+
+    function poll() {
+      $.ajax({
+        type: 'POST',
+        url: "{% url 'simulator_poll' %}",
+        headers: {
+          'X-Request-Type': 'poll',
+          'X-CSRFToken': csrftoken
+        },
+        data: {
+          'simulation_id': simulationID,
+          'request_id': requestID,
+          'patient_id': patientID
+        },
+        dataType: 'json',
+        timeout: 30000,
+
+        success: function (data, textStatus, xhr) {
+          const statusCode = xhr.status;
+
+          if (statusCode === 202) {
+            if (simProgress !== data.progress) {
+              simProgress = data.progress;
+              Swal.update({
+                html: `
+                
+                      <div>
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Status: ${simProgress}</p>
+                        <p class="mt-1"><strong>Elapsed time:</strong> <span id="swal-timer">0</span> sec</p>
+                      </div>
+                    `,
+              });
+            }
+
+            if (Date.now() - pollingStartTime < pollingTimeout) {
+              setTimeout(poll, pollingInterval); // continue polling (recurrsive loop)
+            } else {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Timeout',
+                html: 'Simulation took too long to complete.',
+                confirmButtonText: 'OK'
+              });
+            }
+
+          } else if (statusCode === 200) {
+            // Enable simulation browse form
+            simBrowseWrap.removeClass('visually-hidden');
+            simNoInput.attr('max', data.max_sim_no);
+            simNoInput.val(data.selected_sim_no);
+            reqNoInput.val(requestID);
+            simBrowseBtn.prop("disabled", false);
+            // Render timeline
+            refreshTimeline(data.timeline_html);
+            Swal.fire({
+              icon: 'success',
+              title: 'Simulation Complete',
+              html: 'Results are now available.',
+              confirmButtonText: 'OK'
+            });
+            // Render charts
+            renderDischargeChart(data.graph_data.discharge);
+            renderAntibioticChart(data.graph_data.broad_antibiotics);
+            renderSodiumChart(data.graph_data.serum_sodium);
+            renderPotassiumChart(data.graph_data.serum_potassium)
+
+          } else if (statusCode === 204) {
+            Swal.fire({
+              icon: 'info',
+              title: 'No Data',
+              html: data.errors.join('<br>'),
+              confirmButtonText: 'OK'
+            });
+          } else {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Unexpected Response',
+              html: data.errors.join('<br>'),
+              confirmButtonText: 'OK'
+            });
+          }
+        },
+
+        error: function (xhr, textStatus, errorThrown) {
+          const statusCode = xhr.status;
+
+          if (statusCode === 400) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Bad Request (400)',
+              html: 'Invalid simulation parameters or request format.',
+              confirmButtonText: 'OK'
+            });
+          } else if (statusCode === 500) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Server Error',
+              html: 'The server encountered an error. Please try again later.',
+              confirmButtonText: 'OK'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Polling Failed',
+              html: 'The server could not be reached.<br>Please try again later.',
+              confirmButtonText: 'OK'
+            });
+          }
+        }
+      });
+    }
+
+    poll(); // Start the first call
+  }
+  
+  // Function for browsing
+  function browseTimeline(simBrowseForm, simBrowseData) {
+    // Show loading modal
+    Swal.fire({
+      title: 'Loading simulation...',
+      html: 'Please wait...',
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading(); // Spinner
+      }
+    });
+    // Send form
+    $.ajax({
+      type: 'POST',
+      url: simBrowseForm.attr('action'),
+      headers: {
+        'X-Request-Type': 'run',
+        'X-CSRFToken': csrftoken
+      },
+      data: simBrowseData,
+      dataType: "json",
+      timeout: 10000, // timeout for request submission
+
+      // Request success
+      success: function (data) {
+        refreshTimeline(data.timeline_html);
+        Swal.close();
+      },
+
+      // Request failed
+      error: function (xhr) {
+        let errorMessage = 'Something went wrong while contacting the server.<br>Please try again later.';
+
+        if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.form_errors) {
+          // Form validation error
+          const formErrors = xhr.responseJSON.form_errors;
+
+          // Apply validation highlights to form fields
+          applyFormValidation(formErrors);
+
+          // Compose error message for display
+          errorMessage = '<strong>Form validation failed:</strong><br>';
+          for (const field in formErrors) {
+            if (formErrors.hasOwnProperty(field)) {
+              errorMessage
+            }
+          }
+
+        } else {
+          // Other error (e.g., server error, network error, timeout)
+          console.error("Request failed:", xhr.status, xhr.responseText);
+        }
+
+        // Always show a modal alert after processing
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Request Failed',
+          html: errorMessage,
+          showCloseButton: true,
+          confirmButtonText: 'OK',
+        });
+      },
+
+      complete: function () {
+        simBrowseBtn.prop("disabled", false);
+      }
+    });
+  }
+
+
+
+	// Simulation run button
+	simRunBtn.click(function (event) {
+    event.preventDefault();
+    // Disable submit button
+    simRunBtn.prop("disabled", true);
+    // Get form data
+    var simReqForm = $('#simRequestForm');
+		var simReqData = simReqForm.serialize();
+    // Other vars
+    var requestID = null;
+    var simulationID = null;
+    var patientID = null;
+    // Submit a request
+    submitSimRequest(simReqForm, simReqData, function(result) {
+      const { simulationID, requestID, patientID } = result;
+      // Long poll
+      startPolling(simulationID, requestID, patientID);
+    });
+    // Enable submit button
+    simRunBtn.prop("disabled", false);
+	  })
+
+  // Simulation browse button
+  simBrowseBtn.click(function (event) {
+    event.preventDefault();
+    // Disable submit button
+    simBrowseBtn.prop("disabled", true);
+    // Get form data
+    var simBrowseForm = $('#sim-browse-form');
+		var simBrowseData = simBrowseForm.serialize();
+    // Download and display the selected simulation
+    browseTimeline(simBrowseForm, simBrowseData).finally(() => {
+      // Re-enable browse button after AJAX completes
+      simBrowseBtn.prop("disabled", false);
+    });
+  });
+
+
+  // Function to generate ApexCharts area chart options
+  function createChartOptions({
+    series,
+    height,
+    xaxisCategories,
+    borderColors,
+    fillColors,
+    unit,
+    opacity = 1 // Set to 0 to hide area fill
+  }) {
+    const options = {
+      series: series,
+
+      chart: {
+        type: "area",
+        height: height,
+        toolbar: { show: false }
+      },
+
+      stroke: {
+        curve: "smooth",
+        show: true,
+        width: 3,
+        colors: borderColors
+      },
+
+      xaxis: {
+        categories: xaxisCategories,
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: {
+          style: { fontSize: "12px" }
+        },
+        crosshairs: {
+          position: "front",
+          stroke: {
+            width: 1,
+            dashArray: 3
+          }
+        },
+        tooltip: {
+          enabled: false,           // Set to true to enable x-axis tooltip
+          formatter: null,
+          offsetY: 0,
+          style: { fontSize: "12px" }
+        }
+      },
+
+      yaxis: {
+        labels: {
+          style: { fontSize: "12px" }
+        }
+      },
+
+      colors: fillColors,
+
+      markers: {
+        colors: fillColors,
+        strokeColor: borderColors,
+        strokeWidth: 3
+      },
+
+      plotOptions: {},
+
+      legend: { show: false },
+
+      dataLabels: { enabled: false },
+
+      fill: {
+        type: "solid",
+        opacity: opacity
+      },
+
+      states: {
+        normal: {
+          filter: { type: "none", value: 0 }
+        },
+        hover: {
+          filter: { type: "none", value: 0 }
+        },
+        active: {
+          allowMultipleDataPointsSelection: false,
+          filter: { type: "none", value: 0 }
+        }
+      },
+
+      tooltip: {
+        style: { fontSize: "12px" },
+        y: {
+          formatter: function (val) {
+            return val + unit;
+          }
+        }
+      },
+
+      grid: {
+        strokeDashArray: 4,
+        yaxis: {
+          lines: { show: true }
+        }
+      }
+    };
+
+    return options;
+  }
+  // Render discharge graph function 
+  function renderDischargeChart(dsc_data) {
+    const $dischargeGraph = $('#discharge_chart');
+
+    const dischargeSeries = [
+      { name: "All", data: dsc_data.values.all },
+      { name: "Death", data: dsc_data.values.death }
+    ];
+
+    const dischargeXaxisCategories = dsc_data.labels;
+
+    // Get height using jQuery
+    const dischargeHeight = parseInt($dischargeGraph.css('height'), 10);
+
+    const dischargeBorderColors = [borderGreen, borderYellow];
+    const dischargeFillColors = [fillGreen, fillYellow];
+    const dischargeUnit = " %";
+
+    const dischargeOptions = createChartOptions({
+      series: dischargeSeries,
+      height: dischargeHeight,
+      xaxisCategories: dischargeXaxisCategories,
+      borderColors: dischargeBorderColors,
+      fillColors: dischargeFillColors,
+      unit: dischargeUnit
+    });
+
+    if (dischargeChart) {
+      dischargeChart.destroy();
+    }
+
+    dischargeChart = new ApexCharts($dischargeGraph[0], dischargeOptions);
+    dischargeChart.render();
+  }
+
+
+  // Render antibiotics graph function
+  function renderAntibioticChart(abx_data) {
+    const $antibioticGraph = $('#antibiotic_chart');
+
+    const antibioticSeries = [
+      { name: "Antibiotic Use", data: abx_data.values.all }
+    ];
+
+    const antibioticXaxisCategories = abx_data.labels;
+    const antibioticHeight = parseInt($antibioticGraph.css('height'), 10);
+    const antibioticBorderColors = [borderYellow];
+    const antibioticFillColors = [fillYellow];
+    const antibioticUnit = " %";
+
+    const antibioticOptions = createChartOptions({
+      series: antibioticSeries,
+      height: antibioticHeight,
+      xaxisCategories: antibioticXaxisCategories,
+      borderColors: antibioticBorderColors,
+      fillColors: antibioticFillColors,
+      unit: antibioticUnit
+    });
+
+    if (antibioticChart) {
+      antibioticChart.destroy();
+    }
+
+    antibioticChart = new ApexCharts($antibioticGraph[0], antibioticOptions);
+    antibioticChart.render();
+  }
+
+
+  // Render sodium graph function 
+  function renderSodiumChart(sodium_data) {
+    const $sodiumGraph = $('#sodium_chart');
+
+    const sodiumSeries = [
+      { name: "High", data: sodium_data.values.high },
+      { name: "Median", data: sodium_data.values.median },
+      { name: "Low", data: sodium_data.values.low }
+    ];
+
+    const sodiumXaxisCategories = sodium_data.labels;
+    const sodiumHeight = parseInt($sodiumGraph.css('height'), 10);
+    const sodiumBorderColors = [borderYellow, borderGreen, borderBlue];
+    const sodiumFillColors = [fillYellow, fillGreen, fillBlue];
+    const sodiumUnit = " mmol/L";
+    const opacity = 0; // disable filling area under curve
+
+    const sodiumOptions = createChartOptions({
+      series: sodiumSeries,
+      height: sodiumHeight,
+      xaxisCategories: sodiumXaxisCategories,
+      borderColors: sodiumBorderColors,
+      fillColors: sodiumFillColors,
+      unit: sodiumUnit,
+      opacity: opacity
+    });
+
+    if (sodiumChart) {
+      sodiumChart.destroy();
+    }
+
+    sodiumChart = new ApexCharts($sodiumGraph[0], sodiumOptions);
+    sodiumChart.render();
+  }
+
+
+  // Render potassium graph function
+  function renderPotassiumChart(potassium_data) {
+    const $potassiumGraph = $('#potassium_chart');
+
+    const potassiumSeries = [
+      { name: "High", data: potassium_data.values.high },
+      { name: "Median", data: potassium_data.values.median },
+      { name: "Low", data: potassium_data.values.low }
+    ];
+
+    const potassiumXaxisCategories = potassium_data.labels;
+    const potassiumHeight = parseInt($potassiumGraph.css('height'), 10);
+    const potassiumBorderColors = [borderYellow, borderGreen, borderBlue];
+    const potassiumFillColors = [fillYellow, fillGreen, fillBlue];
+    const potassiumUnit = " mmol/L";
+    const opacity = 0; // disable fill under curves
+
+    const potassiumOptions = createChartOptions({
+      series: potassiumSeries,
+      height: potassiumHeight,
+      xaxisCategories: potassiumXaxisCategories,
+      borderColors: potassiumBorderColors,
+      fillColors: potassiumFillColors,
+      unit: potassiumUnit,
+      opacity: opacity
+    });
+
+    if (potassiumChart) {
+      potassiumChart.destroy();
+    }
+
+    potassiumChart = new ApexCharts($potassiumGraph[0], potassiumOptions);
+    potassiumChart.render();
+  }
+
+
+
+
+
+
+</script>
+{% endblock %}

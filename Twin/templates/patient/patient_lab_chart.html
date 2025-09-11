@@ -1,0 +1,94 @@
+<!--
+  Lab Chart Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/21
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Patient header -->
+{% include 'patient/parts/patient_header.html' %}
+
+<!-- Chart title -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h4 mb-0 text-primary">
+    <i class="bi bi-graph-up-arrow me-2"></i>Lab Trend: {{ item_name }}
+  </h1>
+</div>
+
+{% if not data_dict %}
+<!-- Warning for no records -->
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+  <i class="bi flex-shrink-0 me-2 bi-exclamation-triangle-fill"></i>
+  <div>No results available for this test.</div>
+</div>
+{% else %}
+<!-- Chart canvas -->
+<canvas id="labChart" class="my-4 w-100" height="360" aria-label="Lab chart of {{ item_name }}"></canvas>
+{% endif %}
+{% endblock %}
+
+
+{% block script %}
+{{ block.super }}
+<script >
+	document.addEventListener("DOMContentLoaded", function () {
+	const dataDict = {{ data_dict|safe }};
+	if (!dataDict || !dataDict.length) return;
+
+	const ctx = document.getElementById("labChart");
+
+	const primaryColor = getComputedStyle(document.documentElement)
+		.getPropertyValue('--bs-primary')
+		.trim();
+
+	new Chart(ctx, {
+		type: "line",
+		data: {
+		datasets: [{
+			label: "{{ item_name }}",
+			data: dataDict,  // Should be [{x: timestamp, y: value}, ...]
+			borderColor: primaryColor,
+			backgroundColor: primaryColor + "33",
+			pointRadius: 4,
+			pointHoverRadius: 6,
+			tension: 0.3,
+			fill: true,
+		}]
+		},
+		options: {
+		responsive: true,
+		interaction: {
+			mode: "index",
+			intersect: false
+		},
+		plugins: {
+			legend: { display: false },
+			title: {
+			display: true,
+			text: "Recent Trend of {{ item_name }}",
+			font: { size: 16 }
+			},
+			tooltip: {
+			callbacks: {
+				label: function (ctx) {
+				const v = ctx.raw.y;
+				return `${v} {{ unit|default:"" }}`.trim();
+				}
+			}
+			}
+		},
+		scales: {
+				xAxes: [{
+					type: 'time',
+					distribution: 'series'
+				}]
+			}
+		
+		}
+	});
+	});
+</script>
+{% endblock %}

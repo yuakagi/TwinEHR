@@ -1,0 +1,151 @@
+<!--
+Template for form fields.
+Author: Yu Akagi
+Last Updated: 2025/03/14
+
+This template handles different field types (input, textarea, select, checkbox, radio) in Django forms.
+It applies Bootstrap 5 validation and supports Django's server-side validation.
+
+Note:
+You must add `needs-validation` class and `novalidate` attribute to the <form> tag.
+Form example:
+    <form class="needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
+Bootstrap5 validation https://getbootstrap.com/docs/5.3/forms/validation/
+-->
+{% load field_extras %}
+{% with field|widget_class_name as tag %}
+
+    <!-- begin:: Config for general <input> tags -->
+    {% if tag == "TextInput" or tag == "EmailInput" or tag == "PasswordInput" or tag == "DateInput" or tag == "DateTimeInput" or tag == "TimeInput" %}
+
+
+        <div class="mb-3">
+            <label class="form-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}">{{ field.label }}</label>
+            <input 
+                style="color: black;"
+                type="{{ field.field.widget.input_type }}" 
+                name="{{ field.name }}" 
+                id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
+                class="form-control bg-white {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                value="{{ field.value|default:'' }}"
+                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                autocomplete="off"
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                aria-describedby="{{ field.id_for_label }}-feedback"
+            >
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+
+    <!-- begin:: Config for number inputs -->
+    {% elif tag == "NumberInput" %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}">{{ field.label }}</label>
+            <input 
+
+                style="color: black;"
+                type="number" 
+                name="{{ field.name }}" 
+                id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
+                class="form-control bg-white {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                value="{{ field.value|default:'' }}"
+                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                autocomplete="off"
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                {% if field.field.min_value is not None %}min="{{ field.field.min_value }}"{% endif %}
+                {% if field.field.max_value is not None %}max="{{ field.field.max_value }}"{% endif %}
+                aria-describedby="{{ field.id_for_label }}-feedback"
+            >
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+    <!-- begin:: Config for <textarea> -->
+    {% elif tag == "Textarea" %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}">{{ field.label }}</label>
+            <textarea 
+            style="color: black;"
+                name="{{ field.name }}"
+                id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
+                class="form-control bg-white {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                rows="{{ field.field.widget.attrs.rows|default:4 }}"
+                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                aria-describedby="{{ field.id_for_label }}-feedback"
+            >{{ field.value|default:'' }}</textarea>
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+    <!-- begin:: Config for <select> -->
+    {% elif tag == "Select" %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}">{{ field.label }}</label>
+            <select 
+                style="color: black;"
+                name="{{ field.name }}" 
+                id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
+                class="form-select bg-white {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                aria-describedby="{{ field.id_for_label }}-feedback"
+            >
+                {% if not field.field.required %}
+                    <option value="" {% if not field.value %}selected{% endif %}>---</option>
+                {% endif %}
+                {% for choice_value, choice_label in field.field.choices %}
+                    <option value="{{ choice_value }}" {% if field.value == choice_value %}selected{% endif %}>
+                        {{ choice_label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+    <!-- begin:: Config for checkbox -->
+    {% elif tag == "CheckboxInput" %}
+        <div class="form-check mb-3">
+            <input 
+                type="checkbox"
+                name="{{ field.name }}"
+                id="{{ field.field.widget.attrs.id|default:field.id_for_label }}"
+                class="form-check-input {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                {% if field.value %}checked{% endif %}
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                aria-describedby="{{ field.id_for_label }}-feedback"
+            >
+            <label class="form-check-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}">{{ field.label }}</label>
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+    <!-- begin:: Config for radio buttons -->
+    {% elif tag == "RadioSelect" %}
+        <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {% for choice_value, choice_label in field.field.choices %}
+                <div class="form-check">
+                    <input 
+                        type="radio"
+                        name="{{ field.name }}"
+                        id="{{ field.field.widget.attrs.id|default:field.id_for_label }}_{{ forloop.counter }}"
+                        class="form-check-input {{ field.field.widget.attrs.class|default:'' }} {% if field.errors %}is-invalid{% elif field.form.is_bound and not field.errors %}is-valid{% endif %}"
+                        value="{{ choice_value }}"
+                        {% if field.value == choice_value %}checked{% endif %}
+                        {% if field.field.required %}required{% endif %}
+                        {% if field.field.widget.attrs.disabled %}disabled{% endif %}
+                        aria-describedby="{{ field.id_for_label }}-feedback"
+                    >
+                    <label class="form-check-label" for="{{ field.field.widget.attrs.id|default:field.id_for_label }}_{{ forloop.counter }}">
+                        {{ choice_label }}
+                    </label>
+                </div>
+            {% endfor %}
+            {% include 'components/form_fields/field_errors.html' with field=field %}
+        </div>
+
+    {% endif %}
+
+{% endwith %}

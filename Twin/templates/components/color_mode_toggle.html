@@ -1,0 +1,94 @@
+<!--
+  Color Mode Toggle Button
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+<!-- 
+Note: JavaScript for color-mode selection is loaded in <head>.
+-->
+
+
+<!-- begin:: Custom style for mode toggle -->
+<style>
+  .btn-mode-toggle {
+    --bd-green-bg: #62b346; /* base: bg-tw-green-3 */
+    --bd-green-rgb: 98, 179, 70;
+
+    --bs-btn-font-weight: 600;
+    --bs-btn-color: var(--bs-white);
+    --bs-btn-bg: var(--bd-green-bg);                     /* bg-tw-green-3 */
+    --bs-btn-border-color: var(--bd-green-bg);           /* bg-tw-green-3 */
+    --bs-btn-hover-color: var(--bs-white);
+    --bs-btn-hover-bg: #469433;                          /* bg-tw-green-4 */
+    --bs-btn-hover-border-color: #469433;                /* bg-tw-green-4 */
+    --bs-btn-focus-shadow-rgb: var(--bd-green-rgb);      /* for focus ring */
+    --bs-btn-active-color: var(--bs-white);
+    --bs-btn-active-bg: #24722f;                         /* bg-tw-green-5 */
+    --bs-btn-active-border-color: #24722f;               /* bg-tw-green-5 */
+  }
+
+  
+  .bd-mode-toggle {
+      z-index: 1500;
+  }
+  .bd-mode-toggle .dropdown-menu .active .bi {
+      display: block !important;
+  }
+  </style>
+  <!-- end:: Custom style for mode toggle -->
+  
+  <!-- begin:: Color mode toggle -->
+  <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+    <button class="btn btn-mode-toggle py-2 dropdown-toggle d-flex align-items-center"
+            id="bd-theme"
+            type="button"
+            aria-expanded="false"
+            data-bs-toggle="dropdown"
+            aria-label="Toggle theme (auto)">
+      <i class="bi bi-circle-half my-1 theme-icon-active" style="font-size: 1.25em;"></i>
+      <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+      <li>
+        <button type="button" 
+                class="dropdown-item d-flex align-items-center"
+                data-bs-theme-value="light"
+                data-icon-class="bi-sun-fill"
+                aria-pressed="false">
+          <i class="bi bi-sun-fill me-2 opacity-50"></i>
+          Light
+          <i class="bi bi-check2 ms-auto d-none"></i>
+        </button>
+      </li>
+      <li>
+        <button type="button" 
+                class="dropdown-item d-flex align-items-center"
+                data-bs-theme-value="dark"
+                data-icon-class="bi-moon-stars-fill"
+                aria-pressed="false">
+          <i class="bi bi-moon-stars-fill me-2 opacity-50"></i>
+          Dark
+          <i class="bi bi-check2 ms-auto d-none"></i>
+        </button>
+      </li>
+      <li>
+        <button type="button" 
+                class="dropdown-item d-flex align-items-center active"
+                data-bs-theme-value="auto"
+                data-icon-class="bi-circle-half"
+                aria-pressed="true">
+          <i class="bi bi-circle-half me-2 opacity-50"></i>
+          Auto
+          <i class="bi bi-check2 ms-auto d-none"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <!-- end:: Color mode toggle -->
+  

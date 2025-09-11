@@ -1,0 +1,77 @@
+<!--
+  Lab Test Result Records Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/19
+-->
+{% extends 'patient/parts/patient_record_base.html' %}
+{% load static %}
+
+<!-- Section title -->
+{% block subtitle %}
+<span><i class="bi bi-clipboard-data-fill"></i></span> Laboratory Test Results
+{% endblock %}
+
+<!-- Page url-->
+{% block page_url %}
+  {% url "patients_laboratory_results" patient.pk %}
+{% endblock %}
+
+{% block tablecontent %}
+<!-- begin:: Record table section -->
+<thead>
+	<tr>
+		<th>Time</th>
+		<th>Code</th>
+		<th>Name</th>
+		<th>Result</th>
+	</tr>
+</thead>
+<tbody>
+	{% for record in records %}
+	<tr>
+		<td>{{ record.timestamp|date:'Y-m-d H:i' }}</td>
+		<td><a href="{% url 'patients_lab_chart' patient.pk record.item_code %}">{{ record.item_code }}</a></td>
+		<td>{{ record.item_name }}</td>
+		{% if record.nonnumeric %}
+		<td>{{ record.nonnumeric }}</td>
+		{% else %}
+		<td>{{ record.numeric }} {{ record.unit }}</td>
+		{% endif %}
+	</tr>
+	{% endfor %}
+</tbody>
+<!-- end:: Record table section -->
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+
+// General const
+const patientId = "{{ patient.pk }}";  
+
+// Override the function to redraw datatable uisng AJAX response
+function redrawTable (data, table) {
+		// Clear existing table data
+		table.clear();
+		// Add new rows
+		data.records.forEach(d => {
+			const formattedTime = d.timestamp ? dayjs(d.timestamp).format("YYYY-MM-DD HH:mm") : "";
+			table.row.add([
+				formattedTime,
+				`<a href="/patients/${patientId}/lab_chart/${d.item_code}">${d.item_code}</a>`,
+				d.item_name || "",
+				d.nonnumeric || `${d.numeric} ${d.unit}`
+			]);
+		});
+
+		// Draw the updated table
+		table.draw();
+	}
+</script>
+{% endblock %}
+
+
+
+

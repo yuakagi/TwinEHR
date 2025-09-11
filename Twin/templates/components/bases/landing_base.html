@@ -1,0 +1,138 @@
+<!--
+  Cover page base
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+
+<!doctype html>
+<html lang="en" class="h-100" data-bs-theme="light">
+  <!-- begin:: Head-->
+  <head>
+    {% load static %}
+    {% include "components/heads/common_head.html" %}
+    <!-- Custom styles for this template -->
+    <style>
+      /*
+      * Globals
+      */
+      /* Custom default button */
+      .btn-light,
+      .btn-light:hover,
+      .btn-light:focus {
+        color: #333;
+        text-shadow: none; /* Prevent inheritance from `body` */
+      }
+      /*
+      * Base structure
+      */
+      .overlay-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1; /* Send to background */
+      }
+      #cover-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        object-fit: cover; 
+        object-position: center;
+      }
+
+      .cover-container {
+        max-width: 42em;
+      }
+
+
+      /*
+      * Header
+      */
+
+      .nav-masthead .nav-link {
+        color: rgba(255, 255, 255, .5);
+        border-bottom: .25rem solid transparent;
+      }
+
+      .nav-masthead .nav-link:hover,
+      .nav-masthead .nav-link:focus {
+        border-bottom-color: rgba(255, 255, 255, .25);
+      }
+
+      .nav-masthead .nav-link + .nav-link {
+        margin-left: 1rem;
+      }
+
+      .nav-masthead .active {
+        color: #fff;
+        border-bottom-color: #fff;
+      }
+    </style>
+
+    <!--Add custom styles using the block below in child pages-->
+    {% block style %}
+    {% endblock %}
+    <!---------------------------------------------------------->
+  </head>
+  <!-- end:: Head-->
+
+  <body class="d-flex h-100 text-center text-bg-dark">
+
+    <!-- begin:: Included templates -->
+    {% include "components/message_modal.html" %}
+    <!-- end:: Included templates -->
+
+    <!-- begin:: Background photo-->
+    <div class="overlay-container">
+      <img src="{% static 'assets/dist/media/cover.png' %}" alt="Cover image" id="cover-image">
+    </div>
+    <!-- end:: Background photo-->
+
+    <!-- begin:: Main container-->
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+      <!-- begin:: Header-->
+      <header class="mb-auto">
+        <div>
+          <h3 class="float-md-start mb-0">Twin EHR</h3>
+          <nav class="nav nav-masthead justify-content-center float-md-end">
+            <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="#">Home</a>
+            <a class="nav-link fw-bold py-1 px-0" href="{% url 'account_login' %}">Log in</a>
+            <a class="nav-link fw-bold py-1 px-0" href="{% url 'account_signup' %}">Sign up</a>
+          </nav>
+        </div>
+      </header>
+      <!-- end:: Header-->
+
+      <!-- Include <main> in the content ! -->
+      {% block content %}
+      {% endblock %}
+      <!------------------------------------->
+
+      <!-- begin:: Footer-->
+      <footer class="mt-auto text-white-50">
+        <p>Twin EHR</p>
+      </footer>
+      <!-- end:: Footer-->
+
+    </div>
+    <!-- end:: Main container-->
+
+  </div>
+
+
+  <!--Add custom js using the block below in child pages-->
+  {% block script %}
+  {% endblock %}
+  <!---------------------------------------------------------->
+  </body>
+</html>

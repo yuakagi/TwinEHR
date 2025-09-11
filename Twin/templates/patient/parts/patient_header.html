@@ -1,0 +1,392 @@
+<!--
+  Patient header.
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/18
+-->
+{% load static %}
+<!-- begin::Main card -->
+<div class="card mt-4 mb-4">
+  <div class="card-body pt-3 pb-0">
+    <!-- begin:: Head contents -->
+    <div class="d-flex flex-wrap align-items-center mb-3">
+      <!--begin: Image holder -->
+      <div class="me-3 mb-3">
+        <div class="position-relative" style="width: 100px; height: 100px">
+          {% if patient.sex == "F" %}
+          <img
+            src="{% static 'assets/dist/media/female_patient_avatar.svg' %}"
+            class="rounded-circle w-100 h-100"
+            alt="image"
+          />
+          {% else %}
+          <img
+            src="{% static 'assets/dist/media/male_patient_avatar.svg' %}"
+            class="rounded-circle w-100 h-100"
+            alt="image"
+          />
+          {% endif %}
+          <div
+            class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white"
+            style="width: 20px; height: 20px"
+          ></div>
+        </div>
+      </div>
+      <!--end:: Image holder-->
+      <!--begin:: Patient info -->
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="mb-1">
+              {{ patient.first_name }} {{ patient.last_name }}
+            </h5>
+            <span
+              class="badge {% if patient.sex == 'M' %}bg-primary{% elif patient.sex == 'F' %}bg-danger{% else %}bg-secondary{% endif %}"
+            >
+              {% if patient.sex == "M" %} Male {% elif patient.sex == "F" %}
+              Female {% else %} Gender N/A {% endif %}
+            </span>
+          </div>
+          <button
+            class="btn btn-sm {% if following %}btn-primary{% else %}btn-danger{% endif %}"
+            id="follow_button"
+          >
+            <span id="follow_progress" class="visually-hidden">
+              <span
+                class="spinner-border spinner-border-sm text-secondary"
+                aria-hidden="true"
+              ></span>
+              <span role="status">...</span>
+            </span>
+            <span id="follow_button_text"
+              >{% if following %}Following{% else %}Follow{% endif %}</span
+            >
+          </button>
+        </div>
+        <!-- begin::Id and age -->
+        <div class="d-flex flex-wrap fw-semibold fs-6 mb-4 pe-2">
+          <a
+            href="#"
+            class="d-flex align-items-center text-secondary text-decoration-none me-5 mb-2"
+          >
+            <!-- prettier-ignore -->
+            <i class="bi bi-person-circle me-1"></i> Patient ID: {{ patient.patient_id }}
+          </a>
+          <a
+            href="#"
+            class="d-flex align-items-center text-secondary text-decoration-none me-5 mb-2"
+          >
+            <i class="bi bi-calendar-event me-1"></i> Age: {{ age }}
+          </a>
+        </div>
+        <!-- end::Id and age -->
+
+        <!-- begin:: Relation -->
+        <div class="d-flex flex-wrap flex-stack">
+          <div class="d-flex flex-column flex-grow-1 pe-3">
+            <div
+              id="relation_info"
+              class="border border-secondary border-dashed rounded w-100 py-3 px-4 me-6 mb-3 {% if not following %}visually-hidden{% endif %}"
+            >
+              <label
+                for="relation_comment"
+                class="form-label d-flex justify-content-between"
+              >
+                <span class="text-muted"
+                  >Your notes
+                  <i
+                    id="relation_tag"
+                    class="bi bi-check-circle {% if relation %}text-{{relation.color}}{%else%}text-dark{%endif%}"
+                  ></i>
+                </span>
+                <a
+                  id="relation_action_button"
+                  class="text-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#form_modal"
+                  href="#"
+                  >Edit</a
+                >
+              </label>
+              <div class="d-flex align-items-center">
+                <div
+                  class="overflow-auto"
+                  style="max-height: 150px; width: 100%"
+                >
+                  <p id="relation_comment">{{ relation.comment|linebreaks }}</p>
+                  <span
+                    id="relation_comment_placeholder"
+                    class="text-secondary {% if relation.comment %}visually-hidden{% endif %}"
+                    >You can add notes here.</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end:: Relation -->
+      </div>
+      <!--end:: Patient info -->
+    </div>
+    <!-- end:: Head contents -->
+
+    <!-- begin:: Page selections -->
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_home' %}active{% endif %}"
+          href="{% url 'patients_home' patient.pk%}"
+          >Home</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_laboratory_results' %}active{% endif %}"
+          href="{% url 'patients_laboratory_results' patient.pk %}"
+          >Lab</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_prescription_orders' %}active{% endif %}"
+          href="{% url 'patients_prescription_orders' patient.pk %}"
+          >Prescriptions</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_injection_orders' %}active{% endif %}"
+          href="{% url 'patients_injection_orders' patient.pk %}"
+          >Injections</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_diagnoses' %}active{% endif %}"
+          href="{% url 'patients_diagnoses' patient.pk %}"
+          >Diagnoses</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.resolver_match.url_name == 'patients_admissions' %}active{% endif %}"
+          href="{% url 'patients_admissions' patient.pk %}"
+          >Admissions</a
+        >
+      </li>
+    </ul>
+    <!-- begin:: Page selections -->
+  </div>
+</div>
+<!-- end::Main card -->
+
+<!-- begin::Form modal -->
+<div class="modal fade" id="form_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered mw-400px">
+    <div class="modal-content">
+      <!-- begin::Modal header -->
+      <div class="modal-header">
+        <h2 class="modal-title fw-bold">Edit</h2>
+        <button
+          id="rel_form_close"
+          type="button"
+          class="btn-close"
+          aria-label="Close"
+        ></button>
+      </div>
+      <!-- end::Modal header -->
+
+      <div class="modal-body scroll-y mx-5 my-7">
+        <!-- begin::Form -->
+        <form
+          id="modal_form"
+          action="{% url 'account_edit_user_patient_relation' %}"
+        >
+          {% csrf_token %} 
+          <!-- prettier-ignore -->
+          {% include 'components/form_fields/field_auto.html' with field=relation_edit_form.color %} {% include 'components/form_fields/field_auto.html' with field=relation_edit_form.comment %}
+          <div class="text-end">
+            <button id="rel_form_submit" type="submit" class="btn btn-primary">
+              <span id="rel_form_progress" class="visually-hidden">
+                <span
+                  class="spinner-border spinner-border-sm text-secondary"
+                  aria-hidden="true"
+                ></span>
+                <span role="status">Saving...</span>
+              </span>
+              <span id="rel_submit_text">Submit</span>
+            </button>
+          </div>
+        </form>
+        <!-- end::Form -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end::Form modal -->
+
+{% block script %}
+<script data-patient="{{ patient.pk }}" data-user="{{ user.pk }}">
+  "use strict";
+
+  // jQuery DOM ready event
+  $(document).ready(function () {
+    // Retrieve patient and user data from script dataset
+    const patient = $("script[data-patient]").data("patient");
+    const user = $("script[data-user]").data("user");
+
+    // Select DOM elements
+    const flw_btn = $("#follow_button");
+    const flw_btn_text = $("#follow_button_text");
+    const flw_prog = $("#follow_progress");
+    const rel_info = $("#relation_info");
+
+    // Function to refresh relation info
+    function refreshRelationInfo(new_rel) {
+      const relationComment = $("#relation_comment");
+      const relationCommentPlaceholder = $("#relation_comment_placeholder");
+      const relationTag = $("#relation_tag");
+
+      if (new_rel.comment) {
+        // Replace newlines with HTML line breaks
+        relationComment.html(new_rel.comment.replace(/\n/g, "<br>"));
+        relationCommentPlaceholder.addClass("visually-hidden");
+      } else {
+        relationComment.html("");
+        relationCommentPlaceholder.removeClass("visually-hidden");
+      }
+
+      // Update relation tag color dynamically
+      relationTag
+        .removeClass()
+        .addClass("bi bi-check-circle text-" + new_rel.color);
+    }
+
+    // Follow-unfollow button event listener
+    flw_btn.click(function () {
+      // Disable the button
+      flw_btn.prop("disabled", true);
+      // Hide original text
+      flw_btn_text.text("");
+      flw_prog.removeClass("visually-hidden");
+
+      setTimeout(() => {
+        $.post(
+          "{% url 'account_follow_unfollow' %}",
+          {
+            patient: patient,
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+          },
+          function (data) {
+            if (data.following) {
+              // Update button state when following
+              flw_btn.removeClass("btn-danger").addClass("btn-primary");
+              flw_btn_text.text("Following");
+              rel_info.removeClass("visually-hidden");
+              refreshRelationInfo(data.relation);
+            } else {
+              // Update button state when not following
+              flw_btn.removeClass("btn-primary").addClass("btn-danger");
+              flw_btn_text.text("Follow");
+              rel_info.addClass("visually-hidden");
+            }
+          },
+          "json"
+        )
+          .fail(function () {
+            alert("Error.");
+          })
+          .always(function () {
+            flw_prog.addClass("visually-hidden");
+            flw_btn.prop("disabled", false);
+          });
+      }, 500);
+    });
+
+    // Initialize Bootstrap modal
+    const modal = new bootstrap.Modal($("#form_modal")[0]);
+
+    // Select form elements
+    const relFormClose = $("#rel_form_close");
+    const relFormSubmit = $("#rel_form_submit");
+    const relFormProgress = $("#rel_form_progress");
+    const relSubmitText = $("#rel_submit_text");
+    const modalForm = $("#modal_form");
+
+    // Close button with warning modal
+    relFormClose.click(function (event) {
+      event.preventDefault();
+      Swal.fire({
+        text: "The form is not saved if closed.",
+        icon: "warning",
+        showCancelButton: true,
+        buttonsStyling: false,
+        confirmButtonText: "Close",
+        cancelButtonText: "Go back to edit",
+        customClass: {
+          confirmButton: "btn btn-primary",
+          cancelButton: "btn btn-active-light",
+        },
+      }).then((result) => {
+        if (result.value) modal.hide();
+      });
+    });
+
+    // Submit button event listener
+    relFormSubmit.click(function (event) {
+      event.preventDefault();
+      relFormSubmit.prop("disabled", true);
+      relFormProgress.removeClass("visually-hidden");
+      relSubmitText.addClass("visually-hidden");
+
+      // Serialize form data and append additional parameters
+      let formData = modalForm.serialize();
+      formData += "&patient=" + patient + "&user=" + user;
+
+      $.post(
+        modalForm.attr("action"),
+        formData,
+        function (data) {
+          setTimeout(() => {
+            // Reset UI after successful update
+            Swal.fire({
+              text: "Successfully updated.",
+              icon: "success",
+              buttonsStyling: false,
+              confirmButtonText: "Close",
+              customClass: {
+                confirmButton: "btn btn-primary",
+              },
+            }).then((result) => {
+              if (result.isConfirmed) modal.hide();
+              refreshRelationInfo(data.relation);
+            });
+          }, 500);
+        },
+        "json"
+      )
+        .fail(function () {
+          setTimeout(() => {
+            // Handle error case
+            Swal.fire({
+              text: "Error occurred. Please try again.",
+              icon: "error",
+              buttonsStyling: false,
+              confirmButtonText: "Close",
+              customClass: {
+                confirmButton: "btn btn-primary",
+              },
+            });
+          }, 500);
+        })
+        .always(function () {
+          // Always do this
+          relFormProgress.addClass("visually-hidden");
+          relSubmitText.removeClass("visually-hidden");
+          relFormSubmit.prop("disabled", false);
+        });
+    });
+  });
+</script>
+
+{% endblock %}

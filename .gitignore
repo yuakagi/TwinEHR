@@ -1,0 +1,51 @@
+# Files for development only
+.env
+docker-compose.override.yml
+
+# General files to ignore
+.DS_Store
+nohup.out
+
+# Log files
+*.log
+
+# Python Environments
+venv/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+sample_data/
+
+# IDE Settings
+.vscode/
+
+# Node Modules & Build Artifacts
+node_modules/
+static/assets/dist/*
+!static/assets/dist/.gitkeep
+
+# Ignore all migration files except __init__.py
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Ensure migrations in virtual environments are ignored
+.venv/**/migrations/*.py
+
+# Ignore all contents of staticfiles/ and media/
+staticfiles/*
+media/*
+!staticfiles/.gitkeep
+!media/.gitkeep
+
+# Ignore certifications
+nginx/certs/*
+!nginx/certs/.gitkeep
+
+# Moc db
+mocdb/*
+
+# Docs
+docs/build/**
+docs/source/generated/**
+
+

@@ -1,0 +1,136 @@
+/* 
+  Timeline CSS originally by MarkBoots on CodePen: https://codepen.io/MarkBoots/pen/OJOqNyB
+  Licensed under the MIT License.
+  Modified by Yu Akagi.
+
+  NOTE:
+  All styles are scoped under `.timeline-wrapper` to avoid conflicts with Bootstrap 5.
+  You must wrap the timeline inside an element with class="timeline-wrapper" for styles to apply correctly.
+  Timeline items are always shown on the right; the vertical line stays on the left.
+*/
+
+.timeline-wrapper {
+    --color: rgba(30, 30, 30);
+    --bgColor: rgba(245, 245, 245);
+    color: var(--color);
+    font-family: Arial, sans-serif;
+    background: var(--bgColor);
+  }
+  
+  .timeline-wrapper h1 {
+    text-align: center;
+  }
+  
+  .timeline-wrapper ul {
+    --col-gap: 2rem;
+    --row-gap: 2rem;
+    --line-w: 0.25rem;
+    display: grid;
+    grid-template-columns: var(--line-w) 1fr;
+    column-gap: var(--col-gap);
+    list-style: none;
+    width: min(60rem, 100%);
+    margin-inline: auto;
+    padding-left: 0;
+    margin-top: 2rem;
+  }
+  
+  /* vertical line */
+  .timeline-wrapper ul::before {
+    content: "";
+    grid-column: 1;
+    grid-row: 1 / span 100;
+    background: rgb(225, 225, 225);
+    border-radius: calc(var(--line-w) / 2);
+  }
+  
+  /* spacing between cards */
+  .timeline-wrapper ul li:not(:last-child) {
+    margin-bottom: var(--row-gap);
+  }
+  
+  /* card */
+  .timeline-wrapper ul li {
+    grid-column: 2;
+    --inlineP: 1.5rem;
+    margin-inline: var(--inlineP);
+    grid-row: span 2;
+    display: grid;
+    grid-template-rows: min-content min-content min-content;
+  }
+  
+  /* date */
+  .timeline-wrapper ul li .time {
+    --dateH: 3rem;
+    height: var(--dateH);
+    margin-inline: calc(var(--inlineP) * -1);
+    text-align: center;
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: grid;
+    place-content: center;
+    position: relative;
+    border-radius: calc(var(--dateH) / 2) 0 0 calc(var(--dateH) / 2);
+  }
+  
+  /* date flap */
+  .timeline-wrapper ul li .time::before {
+    content: "";
+    width: var(--inlineP);
+    aspect-ratio: 1;
+    background: var(--accent-color);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.2) 100%, transparent);
+    position: absolute;
+    top: 100%;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    right: 0;
+  }
+  
+  /* circle */
+  .timeline-wrapper ul li .time::after {
+    /* Removed for icon use
+    ( by Yu Akagi)
+     */
+  }
+  
+  /* title + description */
+  .timeline-wrapper ul li .title,
+  .timeline-wrapper ul li .descr {
+    background: var(--bgColor);
+    position: relative;
+    padding-inline: 1.5rem;
+  }
+  .timeline-wrapper ul li .title {
+    overflow: hidden;
+    padding-block-start: 1.5rem;
+    padding-block-end: 1rem;
+    font-weight: 500;
+  }
+  .timeline-wrapper ul li .descr {
+    padding-block-end: 1.5rem;
+    font-weight: 300;
+  }
+  
+  /* shadows */
+  .timeline-wrapper ul li .title::before,
+  .timeline-wrapper ul li .descr::before {
+    content: "";
+    position: absolute;
+    width: 90%;
+    height: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    left: 50%;
+    border-radius: 50%;
+    filter: blur(4px);
+    transform: translate(-50%, 50%);
+  }
+  .timeline-wrapper ul li .title::before {
+    bottom: calc(100% + 0.125rem);
+  }
+  .timeline-wrapper ul li .descr::before {
+    z-index: -1;
+    bottom: 0.25rem;
+  }
+  

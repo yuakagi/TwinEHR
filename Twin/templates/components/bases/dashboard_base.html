@@ -1,0 +1,276 @@
+<!--
+  Base HTML template.
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% load static %}
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+  <!--begin::Head-->
+  <head>
+    {% include "components/heads/common_head.html" %}
+
+    <!-- Custom styles for this template -->
+    <style>
+
+      /*
+      * Sidebar
+      */
+
+      @media (min-width: 768px) {
+        .sidebar .offcanvas-lg {
+          position: -webkit-sticky;
+          position: sticky;
+          top: 48px;
+        }
+      }
+
+      .sidebar .nav-link {
+        font-size: .875rem;
+        font-weight: 500;
+      }
+
+      .sidebar .nav-link.active {
+        color: #2470dc;
+      }
+
+      .sidebar-heading {
+        font-size: .75rem;
+      }
+
+      /*
+      * Navbar
+      */
+
+      .navbar-brand {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+      }
+
+    </style>
+
+    <!--Add custom styles using the block below in child pages-->
+    {% block style %}
+    {% endblock %}
+    <!---------------------------------------------------------->
+
+  </head>
+  <!--end::Head-->
+  <body>
+
+    <!-- begin:: Included templates -->
+    {% include "components/message_modal.html" %}
+    {% include "components/color_mode_toggle.html" %}
+    <!-- end:: Included templates -->
+
+    <!-- begin:: Header -->
+    <header class="navbar sticky-top bg-tw-tone-3 flex-md-nowrap p-0 shadow">
+      
+      <a class="navbar-brand bg-tw-tone-3 col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="{% url 'account_user_home_redirect' %}">
+        <img alt="Logo" src="{% static 'assets/dist/media/logo_default.png' %}" class="show-if-light" height="25"/>
+        <img alt="Logo" src="{% static 'assets/dist/media/logo_dark.png' %}" class="show-if-dark" height="25"/>
+      </a>
+      <ul class="navbar-nav flex-row d-md-none">
+        <li class="nav-item text-nowrap">
+          <button class="nav-link px-3 text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list"></i>
+          </button>
+        </li>
+      </ul>
+
+    </header>
+    <!-- end:: Header -->
+
+    <!-- begin:: Main container -->
+    <div class="container-fluid">
+      <div class="row">
+        <!-- begin:: Sidebar -->
+        <div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+          <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+            <!-- begin:: Sidebar header -->
+            <div class="offcanvas-header">
+              <a href="{% url 'account_user_home_redirect' %}">
+                <img alt="Logo" src="{% static 'assets/dist/media/logo_default.png' %}" class="show-if-light" height="25"/>
+                <img alt="Logo" src="{% static 'assets/dist/media/logo_dark.png' %}" class="show-if-dark" height="25"/>
+              </a>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+            </div>
+            <!-- end:: Sidebar header -->
+            <!-- begin:: Sidebar list -->
+            <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.resolver_match.url_name == 'account_user_home' %}active{% endif %}" aria-current="page" href="{% url 'account_user_home_redirect' %}">
+                    <i class="bi bi-house-fill"></i>
+                    Home
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.resolver_match.url_name == 'patients_find_patients' %}active{% endif %}" href="{% url 'patients_find_patients' %}">
+                    <i class="bi bi-search"></i>Find patients
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.resolver_match.url_name == 'simulator_home' %}active{% endif %}" href="{% url 'simulator_home' %}">
+                    <i class="bi bi-gpu-card"></i> Simulation
+                  </a>
+                </li>
+              </ul>
+
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
+                <span>Staff only</span>
+                <a class="link-secondary" href="#" aria-label="About staff-only">
+                  <i class="bi  bi-question-circle"></i>
+                </a>
+              </h6>
+              <ul class="nav flex-column mb-auto">
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if not user.is_staff %} disabled {% endif %} {% if request.resolver_match.url_name == 'staff_find_users' %}active{% endif %}" 
+                    href="{% if user.is_staff %}{% url 'staff_find_users' %}{% else %}#{% endif %}">
+                    <i class="bi bi-search"></i>Search users
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if not user.is_staff %} disabled {% endif %} {% if request.resolver_match.url_name == 'account_signup' %}active{% endif %}" 
+                    href="{% if user.is_staff %}{% url 'account_signup' %}{% else %}#{% endif %}">
+                    <i class="bi bi-person-circle"></i>Create new users
+                  </a>
+                </li>
+              </ul>
+              
+              <!-- Separator -->
+              <hr class="my-3">
+              <!--------------->
+
+              <ul class="nav flex-column mb-auto">
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'account_logout' %}">
+                    <i class="bi bi-door-closed"></i>
+                    Sign out
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <!-- end:: Sidebar list -->
+          </div>
+        </div>
+        <!-- end:: Sidebar -->
+
+        <!-- begin:: Main-->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          {% block content %}
+          {% endblock %}
+          <!-- begin::Footer-->
+          <div class="container">
+            <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+              <p class="col-md-4 mb-0 text-body-secondary">&copy; 2025 Twin EHR System</p>
+          
+              <!-- begin:: Footer logo-->
+              <a href="/" class="col-md-4 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <img src="{% static 'assets/dist/media/logo_default.png' %}" class="show-if-light" alt="Logo" height="32"/>
+                <img src="{% static 'assets/dist/media/logo_dark.png' %}" class="show-if-dark" alt="Logo" height="32"/>
+              </a>
+              <!-- end:: Footer logo-->
+          
+              <!-- begin:: Footer links-->
+              <ul class="nav col-md-4 justify-content-end">
+                <li class="nav-item"><a href="{% url 'landing' %}" class="nav-link px-2 text-body-secondary">Home</a></li>
+                <li class="nav-item"><a href="{% url 'account_logout' %}" class="nav-link px-2 text-body-secondary">Sign out</a></li>
+              </ul>
+              <!-- end:: Footer links-->
+            </footer>
+          </div>
+          <!-- end::Footer-->
+        </main>
+        <!-- end:: Main-->
+      </div>
+    </div>
+    <!-- end:: Main container -->
+
+    <!--Add custom js using the block below in child pages-->
+    {% block script %}
+    <script>(() => {
+      'use strict'
+    
+      const getStoredTheme = () => localStorage.getItem('theme')
+      const setStoredTheme = theme => localStorage.setItem('theme', theme)
+    
+      const getPreferredTheme = () => {
+        const storedTheme = getStoredTheme()
+        if (storedTheme) return storedTheme
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+    
+      const setTheme = theme => {
+        if (theme === 'auto') {
+          const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          document.documentElement.setAttribute('data-bs-theme', systemPref)
+        } else {
+          document.documentElement.setAttribute('data-bs-theme', theme)
+        }
+      }
+    
+      setTheme(getPreferredTheme())
+    
+      const showActiveTheme = (theme, focus = false) => {
+        const themeSwitcher = document.querySelector('#bd-theme')
+        if (!themeSwitcher) return
+    
+        const themeSwitcherText = document.querySelector('#bd-theme-text')
+        const activeThemeIcon = document.querySelector('.theme-icon-active')
+        const btnToActive = document.querySelector(`[data-bs-theme-value="${theme}"]`)
+    
+        if (!btnToActive || !activeThemeIcon) return
+    
+        const newIconClass = btnToActive.getAttribute('data-icon-class')
+    
+        // Reset theme buttons
+        document.querySelectorAll('[data-bs-theme-value]').forEach(el => {
+          el.classList.remove('active')
+          el.setAttribute('aria-pressed', 'false')
+        })
+    
+        // Activate current button
+        btnToActive.classList.add('active')
+        btnToActive.setAttribute('aria-pressed', 'true')
+    
+        // Update the icon class
+        activeThemeIcon.className = `theme-icon-active bi ${newIconClass}`
+    
+        // Update the ARIA label
+        const themeSwitcherLabel = `${themeSwitcherText.textContent} (${btnToActive.dataset.bsThemeValue})`
+        themeSwitcher.setAttribute('aria-label', themeSwitcherLabel)
+    
+        if (focus) themeSwitcher.focus()
+      }
+    
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        const storedTheme = getStoredTheme()
+        if (storedTheme !== 'light' && storedTheme !== 'dark') {
+          setTheme(getPreferredTheme())
+        }
+      })
+    
+      window.addEventListener('DOMContentLoaded', () => {
+        showActiveTheme(getPreferredTheme())
+    
+        document.querySelectorAll('[data-bs-theme-value]').forEach(toggle => {
+          toggle.addEventListener('click', () => {
+            const theme = toggle.getAttribute('data-bs-theme-value')
+            setStoredTheme(theme)
+            setTheme(theme)
+            showActiveTheme(theme, true)
+          })
+        })
+      })
+    })()</script>
+    {% endblock %}
+    <!---------------------------------------------------------->
+  </body>
+</html>

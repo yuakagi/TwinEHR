@@ -1,0 +1,126 @@
+<!--
+  Login html template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% extends "components/bases/landing_base.html" %}
+{% load static %}
+
+
+  <!-- Custom styles for this page only -->
+  {% block style %}
+  <style>
+    .form-signin {
+      max-width: 330px;
+      padding: 1rem;
+    }
+
+    .form-signin .form-floating:focus-within {
+      z-index: 2;
+    }
+
+    .form-signin input[type="email"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    .form-signin input[type="password"] {
+      margin-bottom: 10px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  </style>
+  {% endblock %}
+
+  <!-- Main content -->
+  {% block content %}
+  <main class="form-signin w-100 m-auto">
+
+    <!-- begin:: Card-->
+    <div class="d-flex justify-content-center align-items-center vh-100">
+      <div class="card shadow-lg p-4" style="max-width: 380px; width: 100%;">
+        <div class="card-body text-center">
+          <!-- begin:: Form heading -->
+          <img class="mb-3" alt="Logo" src="{% static 'assets/dist/media/logo_default.png' %}" height="57"/>
+          <h1 class="h4 mb-3 fw-bold">Sign in</h1>
+          <!-- end:: Form heading -->
+
+          <!-- begin:: Signin form　-->
+          {% include 'components/form_fields/non_field_errors.html' with form=form %}
+          <!-- You need `novalidate` to disable browser's default validators.-->
+          <form id="login-form" class="needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
+            {% csrf_token %}
+            <!-- begin:: Form fields -->
+            <div class="form-floating">
+              {% include 'components/form_fields/field_auto.html' with field=form.username %}
+            </div>
+            <div class="form-floating">
+              {% include 'components/form_fields/field_auto.html' with field=form.password %}
+            </div>
+            <!-- end:: Form fields -->
+
+            <!-- begin:: Submit button -->
+            <button class="btn btn-primary w-100 py-2" type="submit" id="login-button">
+              <span id="button-text">Sign in</span>
+              <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            </button>          
+            <!-- end:: Submit button -->
+          </form>
+          <!-- end:: Signin form -->
+          
+
+
+          <!-- begin:: Sign up link-->
+          <div class="text-secondary fw-semibold mt-3">
+          </div>
+          <!-- end:: Sign up link -->
+        </div>
+
+        <!-- begin:: Card footer -->
+        <div class="card-footer text-center text-muted">
+          <p class="mb-0">&copy; 2025</p>
+
+        </div>
+        <!-- end:: Card footer -->
+      </div>
+    </div>
+    <!-- end:: Card -->
+    
+  </main>
+  {% endblock %}
+
+  {% block script %}
+  <!-- Script for the submit button with a spinner -->
+  <script>
+    $(document).ready(function () {
+      const $form = $("#login-form");
+      const $submitButton = $("#login-button");
+      const $buttonText = $("#button-text");
+      const $spinner = $("#spinner");
+  
+      if ($form.length === 0) return;
+  
+      $form.on("submit", function (event) {
+        if (!this.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+          $form.addClass("was-validated");
+          return;
+        }
+  
+        // Disable the button and show spinner when submitting
+        $submitButton.prop("disabled", true);
+        $spinner.removeClass("d-none");
+        $buttonText.text("Processing...").attr("aria-hidden", "true");
+      });
+    });
+  </script>
+  
+  {% endblock %}

@@ -1,0 +1,189 @@
+<!--
+  Patient Search template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- begin::Section header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<!-- Section title -->
+	<h2><span><i class="bi bi-search"></i></span> Find Patients</h2>
+</div>
+<!-- end::Section header -->
+
+<!-- Main content -->
+<div class="container">
+    <div class="py-5 text-center">
+    <h2>Search patients</h2>
+    <p class="lead">Fill the form below to search patients.</p>
+    <p class="lead">Conditions are filtered using logical AND.</p>
+    </div>
+
+    <div class="row g-5">
+    <div class="col-md-8 mx-auto">
+        <h4 class="mb-3">Patient Basic Info</h4>
+        <form id="searchForm" class="needs-validation" method="POST" action="{% url 'patients_find_patients' %}" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+            <!-- Patient ID -->
+            <div class="col-sm-12">
+                {% include 'components/form_fields/field_auto.html' with field=form.patient_id %}
+            </div>
+            <!-- First & Last name -->
+            <div class="col-sm-6">
+            {% include 'components/form_fields/field_auto.html' with field=form.first_name %}
+            </div>
+            <div class="col-sm-6">
+            {% include 'components/form_fields/field_auto.html' with field=form.last_name %}
+            </div>
+            <!-- Sex -->
+            <div class="col-sm-12">
+            {% include 'components/form_fields/field_auto.html' with field=form.sex %}
+            </div>
+            <!-- Age -->
+            <div class="col-sm-6">
+                {% include 'components/form_fields/field_auto.html' with field=form.min_age%}
+            </div>
+            <div class="col-sm-6">
+                {% include 'components/form_fields/field_auto.html' with field=form.max_age%}
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <h4 class="mb-3">Medical Codes</h4>
+        <div class="row g-3">
+            <!-- Search period -->
+            <div class="col-sm-6">
+            {% include 'components/form_fields/field_auto.html' with field=form.search_start %}
+            </div>
+            <div class="col-6">
+            {% include 'components/form_fields/field_auto.html' with field=form.search_end %}
+            </div>
+            <!-- Medical codes -->
+            <div class="col-12" id="dxCodeInput">
+            {% include 'components/form_fields/field_auto.html' with field=form.dx_code %}
+            </div>
+            <div class="col-12" id="medCodeInput">
+            {% include 'components/form_fields/field_auto.html' with field=form.med_code %}
+            </div>
+            <div class="col-12" id="labCodeInput">
+            {% include 'components/form_fields/field_auto.html' with field=form.lab_code %}
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <button class="w-100 btn btn-primary btn-lg" type="submit">Search</button>
+        </form>
+    </div>
+    </div>
+</div>
+
+
+<!-- begin::Section header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<!-- Section title -->
+	<h2>Patients Found</h2>
+</div>
+<!-- end::Section header -->
+<div class="table-responsive small">
+	<table id="recordTable" class="table table-striped table-hover">
+		<thead>
+            <tr>
+                <th>Patient ID</th>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>DOB</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in patient_list %}
+			<tr>
+			  <td><a href="{% url 'patients_home' p.pk %}">{{ p.patient_id }}</td>
+              <td class="fw-bold">{{ p.first_name }} {{ p.last_name }}</td>
+              <td>{{ p.get_sex_display }}</td>
+			  <td>{{ p.date_of_birth|date:'Y-m-d' }}</td>
+			</tr>
+			{% endfor %}
+        </tbody>
+	</table>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}  <!-- <-Keep parent scripts -->
+<script>
+
+
+/**
+ * Initializes a Select2 autocomplete input.
+ * 
+ * @param {string} inputSelector - jQuery selector for the input (e.g., '#id_dx_code')
+ * @param {string} codeType - One of 'dx', 'med', 'lab'
+ */
+ function codeAutoCompleteSelect2(inputSelector, codeType) {
+    $(inputSelector).select2({
+        placeholder: 'Type keyword here to autocomplete',
+        minimumInputLength: 4,
+        ajax: {
+            url: `/patients/code-autocomplete/${codeType}/`,
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        }
+    });
+}
+
+// Function to initialize DataTable
+function initTable(tableId) {
+	// Ensure the ID starts with "#" before using jQuery selector
+	let tbSelector = tableId.startsWith("#") ? tableId : `#${tableId}`;
+	let tableElement = $(tbSelector);
+
+	// Check if DataTable is already initialized and destroy it
+	if ($.fn.DataTable.isDataTable(tableElement)) {
+		tableElement.DataTable().clear().destroy();
+	}
+
+	// Initialize DataTable
+	let table = tableElement.DataTable({
+		responsive: true,
+		paging: true,
+		searching: true,
+		lengthMenu: [25, 50, 100],
+		order: [[0, "desc"]] // Sort by first column in descending order
+	});
+
+	return table;
+}
+
+$(document).ready(function () {
+    // AJAX autocompletes
+    // Diagnosis code
+    codeAutoCompleteSelect2('.select2-dx', "dx");
+    // Medication code
+    codeAutoCompleteSelect2('.select2-med', "med");
+    // Lab code
+    codeAutoCompleteSelect2('.select2-lab', "lab");
+    // Initialize data table
+    initTable('#recordTable')
+});
+
+</script>
+
+{% endblock %}

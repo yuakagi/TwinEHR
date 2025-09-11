@@ -1,0 +1,130 @@
+<!--
+  User Home Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/21
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- User header -->
+<!-- begin::User card -->
+<div class="card mt-4 mb-4">
+    <div class="card-body pt-3 pb-0">
+        <!-- begin:: Head contents -->
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <!--begin: Image holder -->
+            <div class="me-3 mb-3">
+                <div class="position-relative" style="width: 100px; height: 100px;">
+                    {% if account.gender == "F" %}
+                    <img src="{% static 'assets/dist/media/female_user_avatar.svg' %}" class="rounded-circle w-100 h-100" alt="image" />
+                    {% else %}
+                    <img src="{% static 'assets/dist/media/male_user_avatar.svg' %}" class="rounded-circle w-100 h-100" alt="image" />
+                    {% endif %}
+                    <div class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white" style="width: 20px; height: 20px;"></div>
+                </div>
+            </div>
+            <!--end:: Image holder-->
+            <!--begin:: User info -->
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">{{ account.first_name }} {{ account.last_name }}</h5>
+                        <span class="badge {% if account.gender == 'M' %}bg-primary{% elif account.gender == 'F' %}bg-danger{% else %}bg-secondary{% endif %}">
+                            {% if account.gender == "M" %} Male {% elif account.gender == "F" %} Female {% else %} Gender N/A {% endif %}
+                        </span>
+                    </div>
+                    {% if user.is_staff %}
+                    <a href="{% url 'staff_edit_user' account.pk %}" class="btn btn-sm btn-primary">Edit User</a>
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-wrap fw-semibold fs-6 mb-4 pe-2">
+                    <a href="#" class="d-flex align-items-center text-secondary text-decoration-none me-5 mb-2">
+                        <i class="bi bi-envelope me-1"></i> Email: {{ account.email }}
+                    </a>
+                </div>
+            </div>
+            <!--end:: User info -->
+        </div>
+        <!-- end:: Head contents -->
+    </div>
+</div>
+<!-- end::User card -->
+
+<!-- begin::Section header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<!-- Section title -->
+	<h2><span><i class="bi bi-list"></i></span> Patient List</h2>
+</div>
+<!-- end::Section header -->
+
+<!-- Warning for no records-->
+{% if not relations %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+	<i class="bi flex-shrink-0 me-2 bi-exclamation-triangle-fill"></i>
+	<div>
+		You have no patients in your list.<br>
+	</div>
+</div>
+{% endif %}
+
+<!-- begin:: Record table section -->
+<div class="table-responsive small">
+	<table id="patientListTable" class="table table-striped table-hover">
+		<thead>
+			<tr>
+			  <th>Patient ID</th>
+              <th>Tag</th>
+			  <th>Name</th>
+			  <th>Gender</th>
+			  <th>DOB</th>
+              <th>Comment</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			{% for r in relations %}
+			<tr>
+			  <td><a href="{% url 'patients_home' r.patient.pk %}">{{ r.patient.patient_id}}</td>
+			  <td>
+                {%if r.color%}
+                <span><i id="relation_tag" class="bi bi-check-circle fs-2 text-{{r.color}}"></i></span>
+                {%endif%}
+              </td>
+              <td class="fw-bold">{{ r.patient.first_name }} {{ r.patient.last_name }}</td>
+              <td>{{ r.patient.sex }}</td>
+			  <td>{{ r.patient.date_of_birth|date:'Y-m-d' }}</td>
+              <td title="{{ r.comment }}">
+                {% if r.comment|length > 30 %}
+                    {{ r.comment|slice:":30" }}...
+                {% else %}
+                    {{ r.comment }}
+                {% endif %}
+              </td>
+			</tr>
+			{% endfor %}
+		  </tbody>
+		  
+	</table>
+</div>
+<!-- end:: Record table section -->
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+
+// Function to initialize DataTable
+$(document).ready(function () {
+	// Initialize DataTable
+	let tableElement = $("#patientListTable");
+	let table = tableElement.DataTable({
+		responsive: true,
+		paging: true,
+		searching: true,
+		lengthMenu: [25, 50, 100],
+		order: [[0, "desc"]] // Sort by first column in descending order
+	});
+});
+</script>
+{% endblock %}

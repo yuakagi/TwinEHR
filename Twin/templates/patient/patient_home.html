@@ -1,0 +1,55 @@
+<!--
+  Patient Home Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/21
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'patient/parts/patient_header.html' %}
+<div class="card mt-4 shadow-sm">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <i class="bi bi-person-vcard-fill me-2"></i>Patient Overview
+    </h5>
+    <span class="badge bg-light text-dark">{{ age }}</span>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6 mb-2">
+        <strong>Patient ID:</strong> {{ patient.patient_id }}
+      </div>
+      <div class="col-md-6 mb-2">
+        <strong>Sex:</strong> 
+        {% if patient.sex == "M" %}<span class="text-primary">Male</span>
+        {% elif patient.sex == "F" %}<span class="text-danger">Female</span>
+        {% else %}<span class="text-muted">Unknown</span>{% endif %}
+      </div>
+      <div class="col-md-6 mb-2">
+        <strong>First Name:</strong> {{ patient.first_name }}
+      </div>
+      <div class="col-md-6 mb-2">
+        <strong>Last Name:</strong> {{ patient.last_name }}
+      </div>
+      <div class="col-md-6 mb-2">
+        <strong>Date of Birth:</strong>
+        <span data-bs-toggle="tooltip" data-bs-title="{{ patient.date_of_birth }}">(hover to view)</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+{{ block.super }}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Enable tooltip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
+  });
+</script>
+{% endblock %}

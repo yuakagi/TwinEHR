@@ -1,0 +1,99 @@
+version: "3.8"
+
+services:
+  # NGINX server
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: twinehr-nginx
+    ports:
+      - "80:80" # HTTP only (no 443)
+    env_file:
+      - .env
+    environment:
+      HOST: ${HOST}
+    volumes:
+      - static_volume:/code/static
+      - staticfiles_volume:/code/staticfiles
+      - media_volume:/code/media
+    depends_on:
+      - django_web
+    networks:
+      - twin_net
+
+  # PostgreSQL server (for django)
+  django_db:
+    image: postgres:17.4
+    container_name: twinehr-django_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - twin_net
+
+  # Main web app container
+  django_web:
+    container_name: twinehr-django_web
+    build:
+      context: ./Twin
+      dockerfile: Dockerfile
+      args:
+        BUILD_MODE: production
+    env_file:
+      - .env
+    environment:
+      DJANGO_DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SIM_API_HOST: ${REMOTE_HOST}
+      SIM_API_PORT: ${SIM_API_PORT}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      PG_CONN_MAX_AGE: ${PG_CONN_MAX_AGE}
+      CR_USER: ${CR_USER}
+      CR_PASSWORD: ${CR_PASSWORD}
+      CR_DB: ${CR_DB}
+      CR_HOST: ${REMOTE_HOST}
+      CR_PORT: ${CR_PORT}
+      CR_SCHEMA: ${CR_SCHEMA}
+      CR_CONN_MAX_AGE: ${CR_CONN_MAX_AGE}
+    ports:
+      - "${DJANGO_PORT}:8000"
+    volumes:
+      # Volumes shared with nginx
+      - static_volume:/code/static
+      - staticfiles_volume:/code/staticfiles
+      - media_volume:/code/media
+    depends_on:
+      - django_db
+    networks:
+      - twin_net
+
+    entrypoint: >
+      sh -c "
+        python3 manage.py collectstatic --noinput && \
+        python3 manage.py makemigrations --noinput && \
+        python3 manage.py migrate --noinput && \
+        if [ \"$$DJANGO_DEBUG\" = \"true\" ]; then \
+          python3 manage.py runserver 0.0.0.0:8000; \
+        else \
+          gunicorn --workers=$$GUNICORN_WORKERS --bind 0.0.0.0:8000 Twin.wsgi:application; \
+        fi
+      "
+
+volumes:
+  postgres_data:
+  static_volume:
+  staticfiles_volume:
+  media_volume:
+
+networks:
+  twin_net:

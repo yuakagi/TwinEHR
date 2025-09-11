@@ -1,0 +1,127 @@
+<!--
+  Record Table Template
+
+  Author: Yu Akagi
+  Last Updated: 2025/3/19
+
+  Tutorial for using this template:
+	1. Create the view
+		The view must return `record_form` as the record selection form, 
+		and `records` as the clinical recors to be displayed.
+	2. Set title uisng `block subtitle`
+		Add an icon is a good option.
+	3. Add headers and rows in the block `tablecontent`  using `records`
+		Adding <thead> and <tbody> is expected.
+	4. Override `block page_url` in the child page 
+		Set the child page URL (URL for AJAX) in f`block page_ur`. 
+	5. Override `redrawTable` in the child page 
+		Re-define `redrawTable` in `block script`. 
+		Call `block.super` to keep the scripts of this page.
+	
+-->
+{% extends 'components/bases/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Patient header -->
+{% include 'patient/parts/patient_header.html' %}
+
+<!-- begin::Section header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<!-- Section title -->
+	<h2>{% block subtitle %}{% endblock %}</h2>
+	<!-- Side buttons -->
+	{% if record_form %}
+	<div class="btn-toolbar mb-2 mb-md-0">
+		<form id="recordForm" method="POST" data-url="{% block page_url %}{% endblock %}">
+			{% csrf_token %}
+			<div class="input-group align-items-end">
+				{% include 'components/form_fields/field_auto.html' with field=record_form.date_selection %}
+				{% include 'components/form_fields/field_auto.html' with field=record_form.period %}
+				<div class="mb-3 align-self-end">
+					<button id="record-form-btn" class="btn btn-primary " type="submit">Submit</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	{% endif %}
+</div>
+<!-- end::Section header -->
+
+<!-- Warning for no records-->
+{% if not records %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+	<i class="bi flex-shrink-0 me-2 bi-exclamation-triangle-fill"></i>
+	<div>
+		No records were found.
+	</div>
+</div>
+{% endif %}
+
+<!-- begin:: Record table section -->
+<div class="table-responsive small">
+	<table id="recordTable" class="table table-striped table-hover">
+		{% block tablecontent %}
+		{% endblock %}
+	</table>
+</div>
+<!-- end:: Record table section -->
+{% endblock %}
+
+{% block script %}
+{{ block.super }}  <!-- <- Keep parent scripts -->
+<!-- Load custom scripts for AJAX data handling -->
+<script src="{% static 'assets/dist/js/ajax_form.js' %}"></script>
+
+<script>
+
+/*
+ * Default (empty) redrawTable — meant to be overridden in child templates.
+ */
+ function redrawTable(data, table) {
+    console.warn("redrawTable() is not implemented for this page.");
+}
+
+// General Constants
+let tableId = "recordTable";  
+const recordForm = $("#recordForm");
+const pageUrl = recordForm.data("url");
+
+// Function to initialize DataTable
+function initTable(tableId) {
+	// Ensure the ID starts with "#" before using jQuery selector
+	let tbSelector = tableId.startsWith("#") ? tableId : `#${tableId}`;
+	let tableElement = $(tbSelector);
+
+	// Check if DataTable is already initialized and destroy it
+	if ($.fn.DataTable.isDataTable(tableElement)) {
+		tableElement.DataTable().clear().destroy();
+	}
+
+	// Initialize DataTable
+	let table = tableElement.DataTable({
+		responsive: true,
+		paging: true,
+		searching: true,
+		lengthMenu: [25, 50, 100],
+		order: [[0, "desc"]] // Sort by first column in descending order
+	});
+
+	return table;
+}
+
+$(document).ready(function () {
+	// Initialize DataTable
+	let table = initTable(tableId);
+	// Handle form submission with AJAX
+	recordForm.on("submit", function (event) {
+		// Prevent default submission
+		event.preventDefault();
+		// AJAX handling
+		// Note: Passing additional argument `table` to redrawTable using Arrow Function
+		handleAjaxForm(pageUrl, "recordForm", (data) => redrawTable(data, table), function () {}, function () {});
+	});
+});
+
+</script>
+{% endblock %}

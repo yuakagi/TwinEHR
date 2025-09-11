@@ -1,0 +1,30 @@
+<!--begin::Messages-->
+{% if messages %}
+<div class="modal fade" id="message_modal" tabindex="-1" aria-labelledby="message_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="d-flex justify-content-between mb-2">
+          <h1 class="modal-title fs-5" id="message_modal_label">Messages</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for message in messages %}
+          <li class="list-group-item">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#message_modal').modal('show');
+    setTimeout(function() {
+      $('#message_modal').modal('hide');
+    }, 20000); // Hide after 20 seconds
+  });
+</script>
+{% endif %}
+<!--end::Messages-->

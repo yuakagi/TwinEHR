@@ -1,0 +1,18 @@
+<!--
+Template for form non-field errors.
+Author: Yu Akagi
+Last Updated: 2025/03/14
+
+Message fields for non-field errors in Django forms.
+-->
+
+
+<!-- begin:: Error messages -->
+{% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">
+    {% for error in form.non_field_errors %}
+      {{ error }}
+    {% endfor %}
+  </div>
+{% endif %}
+<!-- begin:: Error messages -->

@@ -1,0 +1,29 @@
+<!--
+  Cover page
+  Author: Yu Akagi
+  Last Updated: 2025/3/14
+
+  Attribution:
+    This code is modified from Bootstrap 5 examples.
+    Original authors: Mark Otto, Jacob Thornton, and Bootstrap contributors.
+    Source: https://getbootstrap.com
+-->
+{% extends "components/bases/landing_base.html" %}
+{% load static %}
+
+
+<!-- Main content -->
+{% block content %}
+    <main class="px-3">
+      <h1>Digital Twin EHR System</h1>
+      <p id="typed-text" class="lead"></p>
+      <p class="lead">
+        <a href="{% url 'account_login' %}" class="btn btn-lg btn-light fw-bold border-white bg-white">Start</a>
+      </p>
+    </main>
+
+{% endblock %}
+
+<!-- Custom scripts -->
+{% block script %}
+{% endblock %}

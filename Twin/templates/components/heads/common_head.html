@@ -1,0 +1,42 @@
+<!--
+    Common head components.
+    Author: Yu Akagi
+    Last Updated: 2025/3/14
+    Note:-
+-->
+
+{% load static %}
+
+<!-- Basics -->
+<base href="" />
+<title>Twin: Digital Twin EHR</title>
+<meta charset="utf-8" />
+<meta name="description" content="Twin: A digital twin EHR for healthcare simulation and patient management." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- Open Graph (OG) Tags (for social media sharing) -->
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Twin: Digital Twin EHR" />
+<meta property="og:description" content="A next-generation digital twin EHR system for patient simulation and healthcare analytics." />
+<meta property="og:url" content="https://twin-ehr.com/" />
+<meta property="og:site_name" content="Twin EHR" />
+<link rel="canonical" href="https://twin-ehr.com/" />
+
+<!-- Favicon -->
+<link rel="shortcut icon" href="{% static 'assets/dist/media/favicon.ico' %}" />
+
+<!-- JavaScripts -->
+<script src="{% static 'assets/dist/js/bundle.js' %}"></script>
+
+<!-- CSS -->
+<link href="{% static 'assets/dist/css/bundle.css' %}" rel="stylesheet" type="text/css" />
+
+<!-- Frame-busting -->
+<script>
+    if (window.top !== window.self) {
+        window.top.location.replace(window.self.location.href);
+    }
+</script>
+<!--</head>-->
+    
